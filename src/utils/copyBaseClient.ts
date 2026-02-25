@@ -17,11 +17,16 @@ const BASE_API_CLIENT_CONTENT = `/**
 import { request, APIRequestContext } from '@playwright/test';
 
 /**
+ * Supported query parameter value types
+ */
+export type QueryParamValue = string | number | boolean | undefined | (string | number | boolean)[];
+
+/**
  * Options for individual API requests
  */
 export interface RequestOptions {
 	headers?: Record<string, string>;
-	params?: Record<string, string | number | boolean | undefined>;
+	params?: Record<string, QueryParamValue>;
 	timeout?: number;
 }
 
@@ -108,14 +113,20 @@ export class BaseAPIClient {
 	 */
 	private buildUrl(
 		endpoint: string,
-		params?: Record<string, string | number | boolean | undefined>
+		params?: Record<string, QueryParamValue>
 	): string {
 		if (!params) return endpoint;
 
 		const searchParams = new URLSearchParams();
 		for (const [key, value] of Object.entries(params)) {
 			if (value !== undefined) {
-				searchParams.append(key, String(value));
+				if (Array.isArray(value)) {
+					for (const item of value) {
+						searchParams.append(key, String(item));
+					}
+				} else {
+					searchParams.append(key, String(value));
+				}
 			}
 		}
 

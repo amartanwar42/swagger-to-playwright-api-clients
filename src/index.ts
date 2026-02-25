@@ -35,7 +35,12 @@ export {
 export { runGenerator, RunResults } from './utils/swagger/run-generator';
 
 // Base client for users to extend
-export { BaseAPIClient, RequestOptions, APIResponseResult } from './clients/BaseAPIClient';
+export {
+	BaseAPIClient,
+	RequestOptions,
+	APIResponseResult,
+	QueryParamValue,
+} from './clients/BaseAPIClient';
 
 // Programmatic API
 export { generate, generateFromConfig, loadConfig } from './api';

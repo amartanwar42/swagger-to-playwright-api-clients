@@ -165,13 +165,17 @@ export class TypeGenerator {
 		const types: string[] = [];
 
 		for (const [name, definition] of this.typeDefinitions) {
+			// Check if it's a union type (contains | at top level between objects)
+			const isUnionType = this.isUnionTypeDefinition(definition);
+
 			// Check if it's an interface (object type) or type alias
 			if (
 				definition.startsWith('{') ||
 				definition.includes('Record<') ||
 				definition.includes('[]')
 			) {
-				if (definition.startsWith('{')) {
+				// Union types must use 'type', not 'interface'
+				if (definition.startsWith('{') && !isUnionType) {
 					types.push(`export interface ${name} ${definition}`);
 				} else {
 					types.push(`export type ${name} = ${definition};`);
@@ -182,6 +186,32 @@ export class TypeGenerator {
 		}
 
 		return types.join('\n\n');
+	}
+
+	/**
+	 * Check if a type definition is a union type (e.g., {...} | {...})
+	 */
+	private isUnionTypeDefinition(definition: string): boolean {
+		// Track brace depth to find top-level | operators
+		let braceDepth = 0;
+		let parenDepth = 0;
+		let bracketDepth = 0;
+
+		for (let i = 0; i < definition.length; i++) {
+			const char = definition[i];
+
+			if (char === '{') braceDepth++;
+			else if (char === '}') braceDepth--;
+			else if (char === '(') parenDepth++;
+			else if (char === ')') parenDepth--;
+			else if (char === '[') bracketDepth++;
+			else if (char === ']') bracketDepth--;
+			else if (char === '|' && braceDepth === 0 && parenDepth === 0 && bracketDepth === 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
