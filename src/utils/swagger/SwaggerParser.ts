@@ -207,6 +207,12 @@ export class SwaggerParser {
 			return this.schemaToTypeScript(param.schema);
 		}
 
+		// Handle array type with items
+		if (param.type === 'array' && param.items) {
+			const itemType = this.getItemType(param.items);
+			return `${itemType}[]`;
+		}
+
 		const typeMap: Record<string, string> = {
 			string: 'string',
 			integer: 'number',
@@ -222,6 +228,28 @@ export class SwaggerParser {
 		}
 
 		return typeMap[param.type || 'string'] || 'unknown';
+	}
+
+	/**
+	 * Get TypeScript type from items schema
+	 */
+	private getItemType(items: SchemaObject): string {
+		if (items.$ref) {
+			return toPascalCase(this.extractRefName(items.$ref));
+		}
+
+		if (items.type) {
+			const typeMap: Record<string, string> = {
+				string: 'string',
+				integer: 'number',
+				number: 'number',
+				boolean: 'boolean',
+				object: 'Record<string, unknown>',
+			};
+			return typeMap[items.type] || 'unknown';
+		}
+
+		return 'unknown';
 	}
 
 	/**
