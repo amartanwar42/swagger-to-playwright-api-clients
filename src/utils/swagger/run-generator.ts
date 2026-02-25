@@ -22,34 +22,141 @@ export interface RunResults {
 	skipped: number;
 	results: Array<{
 		source: string;
-		result: GeneratorResult;
+		results: GeneratorResult[];
 	}>;
 }
 
 /**
- * Process a single swagger source
+ * Process a single swagger source (file or URL)
+ */
+async function processSingleSource(
+	filePath: string,
+	outputDir: string,
+	serviceName: string | undefined,
+	baseClientPath: string
+): Promise<GeneratorResult> {
+	const generator = new SwaggerGenerator({
+		outputDir,
+		serviceName,
+		baseClientPath,
+	});
+	return generator.generateFromFile(filePath);
+}
+
+/**
+ * Process a directory containing swagger JSON files
+ */
+async function processDirectory(
+	dirPath: string,
+	outputDir: string,
+	serviceName: string | undefined,
+	baseClientPath: string
+): Promise<GeneratorResult[]> {
+	const results: GeneratorResult[] = [];
+
+	try {
+		const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
+		const jsonFiles = entries
+			.filter((entry) => entry.isFile() && entry.name.endsWith('.json'))
+			.map((entry) => entry.name);
+
+		if (jsonFiles.length === 0) {
+			logger.warn(`No JSON files found in directory: ${dirPath}`);
+			return [
+				{
+					success: false,
+					serviceName: serviceName || '',
+					filesWritten: [],
+					folderStructure: '',
+					errors: [`No JSON files found in directory: ${dirPath}`],
+				},
+			];
+		}
+
+		logger.info(`Found ${jsonFiles.length} JSON file(s) in directory: ${dirPath}`);
+
+		for (const jsonFile of jsonFiles) {
+			const filePath = path.join(dirPath, jsonFile);
+			// Use filename (without extension) as service name if not provided
+			const fileServiceName = serviceName || path.basename(jsonFile, '.json');
+			logger.info(`Processing: ${jsonFile}`);
+
+			const result = await processSingleSource(
+				filePath,
+				outputDir,
+				fileServiceName,
+				baseClientPath
+			);
+			results.push(result);
+		}
+	} catch (error) {
+		const errorMessage = error instanceof Error ? error.message : String(error);
+		logger.error(`Failed to read directory: ${errorMessage}`);
+		results.push({
+			success: false,
+			serviceName: serviceName || '',
+			filesWritten: [],
+			folderStructure: '',
+			errors: [`Failed to read directory: ${errorMessage}`],
+		});
+	}
+
+	return results;
+}
+
+/**
+ * Process a single swagger source (can be file, directory, or URL)
  */
 async function processSource(
 	sourceConfig: SwaggerSourceConfig,
 	globalOutputDir: string,
 	baseClientPath?: string
-): Promise<GeneratorResult> {
+): Promise<GeneratorResult[]> {
 	const outputDir = sourceConfig.outputDir || globalOutputDir;
-	const generator = new SwaggerGenerator({
-		outputDir,
-		serviceName: sourceConfig.serviceName,
-		baseClientPath: baseClientPath || DEFAULT_BASE_CLIENT_PATH,
-	});
+	const clientPath = baseClientPath || DEFAULT_BASE_CLIENT_PATH;
 
 	if (sourceConfig.type === 'file') {
 		// Resolve file path relative to project root
-		const filePath = path.isAbsolute(sourceConfig.source)
+		const sourcePath = path.isAbsolute(sourceConfig.source)
 			? sourceConfig.source
 			: path.join(process.cwd(), sourceConfig.source);
 
-		return generator.generateFromFile(filePath);
+		// Check if source is a directory or file
+		try {
+			const stats = await fs.promises.stat(sourcePath);
+
+			if (stats.isDirectory()) {
+				return processDirectory(sourcePath, outputDir, sourceConfig.serviceName, clientPath);
+			} else {
+				const result = await processSingleSource(
+					sourcePath,
+					outputDir,
+					sourceConfig.serviceName,
+					clientPath
+				);
+				return [result];
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			return [
+				{
+					success: false,
+					serviceName: sourceConfig.serviceName || '',
+					filesWritten: [],
+					folderStructure: '',
+					errors: [`Failed to access source: ${errorMessage}`],
+				},
+			];
+		}
 	} else {
-		return generator.generateFromUrl(sourceConfig.source);
+		// URL source
+		const generator = new SwaggerGenerator({
+			outputDir,
+			serviceName: sourceConfig.serviceName,
+			baseClientPath: clientPath,
+		});
+		const result = await generator.generateFromUrl(sourceConfig.source);
+		return [result];
 	}
 }
 
@@ -120,24 +227,28 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 			const source = activeSources[i];
 
 			if (settledResult.status === 'fulfilled') {
-				const result = settledResult.value;
-				results.results.push({ source: source.source, result });
-				if (result.success) {
-					results.successful++;
-				} else {
-					results.failed++;
+				const sourceResults = settledResult.value;
+				results.results.push({ source: source.source, results: sourceResults });
+				for (const result of sourceResults) {
+					if (result.success) {
+						results.successful++;
+					} else {
+						results.failed++;
+					}
 				}
 			} else {
 				results.failed++;
 				results.results.push({
 					source: source.source,
-					result: {
-						success: false,
-						serviceName: '',
-						filesWritten: [],
-						folderStructure: '',
-						errors: [settledResult.reason?.message || 'Unknown error'],
-					},
+					results: [
+						{
+							success: false,
+							serviceName: '',
+							filesWritten: [],
+							folderStructure: '',
+							errors: [settledResult.reason?.message || 'Unknown error'],
+						},
+					],
 				});
 			}
 		}
@@ -148,15 +259,23 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 			logger.info(`Processing: ${source.source}`);
 
 			try {
-				const result = await processSource(source, generatedClientsDir, config.baseClientPath);
-				results.results.push({ source: source.source, result });
+				const sourceResults = await processSource(
+					source,
+					generatedClientsDir,
+					config.baseClientPath
+				);
+				results.results.push({ source: source.source, results: sourceResults });
 
-				if (result.success) {
-					results.successful++;
-					logger.info(`✓ Generated ${result.filesWritten.length} files for ${result.serviceName}`);
-				} else {
-					results.failed++;
-					logger.error(`✗ Failed: ${result.errors.join(', ')}`);
+				for (const result of sourceResults) {
+					if (result.success) {
+						results.successful++;
+						logger.info(
+							`✓ Generated ${result.filesWritten.length} files for ${result.serviceName}`
+						);
+					} else {
+						results.failed++;
+						logger.error(`✗ Failed: ${result.errors.join(', ')}`);
+					}
 				}
 			} catch (error) {
 				results.failed++;
@@ -164,13 +283,15 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 				logger.error(`✗ Exception: ${errorMessage}`);
 				results.results.push({
 					source: source.source,
-					result: {
-						success: false,
-						serviceName: '',
-						filesWritten: [],
-						folderStructure: '',
-						errors: [errorMessage],
-					},
+					results: [
+						{
+							success: false,
+							serviceName: '',
+							filesWritten: [],
+							folderStructure: '',
+							errors: [errorMessage],
+						},
+					],
 				});
 			}
 		}

@@ -7,13 +7,14 @@
  */
 export interface SwaggerSourceConfig {
 	/**
-	 * Type of source: 'file' for local JSON file, 'url' for remote URL
+	 * Type of source: 'file' for local JSON file or directory containing JSON files, 'url' for remote URL
 	 */
 	type: 'file' | 'url';
 
 	/**
-	 * Path to local file or URL to remote Swagger JSON
-	 * For files: can be absolute or relative to project root
+	 * Path to local file, directory containing Swagger JSON files, or URL to remote Swagger JSON
+	 * For files: can be absolute or relative to project root (single .json file)
+	 * For directories: all .json files in the directory will be processed
 	 * For URLs: must be a valid HTTP/HTTPS URL
 	 */
 	source: string;

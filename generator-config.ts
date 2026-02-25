@@ -50,6 +50,14 @@ const config: AutomationConfig = {
 		//   serviceName: 'PetStoreService',
 		// },
 		// =====================================
+		// EXAMPLE: Directory with multiple JSON files
+		// =====================================
+		// {
+		//   type: 'file',
+		//   source: './swagger/', // Directory containing swagger JSON files
+		//   // serviceName is optional - uses filename as service name if not provided
+		// },
+		// =====================================
 		// EXAMPLE: Remote URL
 		// =====================================
 		// {
