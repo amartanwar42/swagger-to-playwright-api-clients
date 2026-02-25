@@ -1,6 +1,6 @@
 {
 	"name": "swagger-to-playwright-api-clients",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "Generate TypeScript API clients from Swagger/OpenAPI specifications for Playwright testing",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
