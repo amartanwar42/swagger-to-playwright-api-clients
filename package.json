@@ -33,7 +33,7 @@
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/your-username/swagger-to-playwright-api-clients.git"
+		"url": "https://github.com/amartanwar42/swagger-to-playwright-api-clients"
 	},
 	"engines": {
 		"node": ">=18.0.0"
