@@ -256,6 +256,17 @@ export class SwaggerParser {
 	 * Parse schema into TypeScript representation
 	 */
 	parseSchema(schema: SchemaObject, defaultName: string): ParsedSchema {
+		// Handle malformed schema where type definition is nested under 'default'
+		if (
+			schema.default &&
+			typeof schema.default === 'object' &&
+			!schema.type &&
+			!schema.properties &&
+			(schema.default as SchemaObject).type
+		) {
+			return this.parseSchema(schema.default as SchemaObject, defaultName);
+		}
+
 		// Handle $ref
 		if (schema.$ref) {
 			const refName = this.extractRefName(schema.$ref);
@@ -341,6 +352,18 @@ export class SwaggerParser {
 		// Handle $ref
 		if (schema.$ref) {
 			return toPascalCase(this.extractRefName(schema.$ref));
+		}
+
+		// Handle malformed schema where type definition is nested under 'default'
+		// This is non-standard but some APIs use it incorrectly
+		if (
+			schema.default &&
+			typeof schema.default === 'object' &&
+			!schema.type &&
+			!schema.properties &&
+			(schema.default as SchemaObject).type
+		) {
+			return this.schemaToTypeScript(schema.default as SchemaObject);
 		}
 
 		// Handle array
