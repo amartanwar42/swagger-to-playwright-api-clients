@@ -1,0 +1,56 @@
+{
+	"name": "swagger-to-playwright-api-clients",
+	"version": "1.0.0",
+	"description": "Generate TypeScript API clients from Swagger/OpenAPI specifications for Playwright testing",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"bin": {
+		"swagger-to-playwright": "./dist/cli.js"
+	},
+	"files": [
+		"dist",
+		"README.md"
+	],
+	"scripts": {
+		"build": "tsc",
+		"build:watch": "tsc --watch",
+		"prepublishOnly": "npm run build",
+		"test": "npx playwright test",
+		"generate": "npx ts-node src/cli.ts",
+		"generate:help": "npx ts-node src/cli.ts --help",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
+	},
+	"keywords": [
+		"swagger",
+		"openapi",
+		"playwright",
+		"api-client",
+		"code-generator",
+		"typescript"
+	],
+	"author": "",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/your-username/swagger-to-playwright-api-clients.git"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"peerDependencies": {
+		"@playwright/test": ">=1.40.0",
+		"playwright": ">=1.40.0"
+	},
+	"dependencies": {
+		"winston": "^3.19.0"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.58.2",
+		"@types/node": "^25.3.0",
+		"playwright": "^1.58.2",
+		"prettier": "^3.5.3",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.9.3"
+	}
+}
