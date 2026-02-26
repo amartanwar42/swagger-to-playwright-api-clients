@@ -19,7 +19,8 @@
 		"generate": "npx ts-node src/cli.ts",
 		"generate:help": "npx ts-node src/cli.ts --help",
 		"format": "prettier --write .",
-		"format:check": "prettier --check ."
+		"format:check": "prettier --check .",
+		"formatCode": "prettier --write ."
 	},
 	"keywords": [
 		"swagger",
@@ -43,13 +44,13 @@
 		"playwright": ">=1.40.0"
 	},
 	"dependencies": {
+		"prettier": "^3.5.3",
 		"winston": "^3.19.0"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.58.2",
 		"@types/node": "^25.3.0",
 		"playwright": "^1.58.2",
-		"prettier": "^3.5.3",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.9.3"
 	}

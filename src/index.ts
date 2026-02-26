@@ -44,6 +44,15 @@ export {
 	logError,
 } from './utils/logger';
 
+// Formatter exports - for formatting generated code
+export {
+	formatCode,
+	formatFile,
+	formatFiles,
+	loadPrettierConfig,
+	clearPrettierCache,
+} from './utils/formatter';
+
 // Runner
 export { runGenerator, RunResults } from './utils/swagger/run-generator';
 

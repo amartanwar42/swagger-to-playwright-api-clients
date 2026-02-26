@@ -126,6 +126,13 @@ export interface AutomationConfig {
 	 * Optional: Logger configuration
 	 */
 	logger?: LoggerConfig;
+
+	/**
+	 * Optional: Path to Prettier config file
+	 * If not provided, uses default Prettier config or looks for .prettierrc in project root
+	 * Set to false to disable formatting
+	 */
+	prettierConfig?: string | false;
 }
 
 /**
@@ -153,4 +160,5 @@ export const defaultConfig: Partial<AutomationConfig> = {
 	copyBaseClient: true,
 	baseClientPath: DEFAULT_BASE_CLIENT_PATH,
 	logger: defaultLoggerConfig,
+	prettierConfig: undefined, // Use default Prettier config
 };

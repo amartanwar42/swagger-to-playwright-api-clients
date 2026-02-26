@@ -127,6 +127,12 @@ const config: AutomationConfig = {
     file: true,
   },
 
+  // Prettier configuration for formatting generated code
+  // - undefined: auto-detect .prettierrc from project root (default)
+  // - string: path to custom prettier config file (e.g., './custom.prettierrc')
+  // - false: disable formatting
+  prettierConfig: undefined,
+
   // Swagger/OpenAPI sources
   sources: [
     // Example: Local file

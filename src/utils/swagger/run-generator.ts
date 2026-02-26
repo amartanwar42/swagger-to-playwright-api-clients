@@ -11,6 +11,7 @@ import {
 	DEFAULT_BASE_CLIENT_PATH,
 } from '../../config/types';
 import logger, { configureLogger, getLogger } from '../logger';
+import { formatFiles } from '../formatter';
 
 /**
  * Results for all processed sources
@@ -299,6 +300,21 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 				});
 			}
 		}
+	}
+
+	// Collect all generated files for formatting
+	const allGeneratedFiles: string[] = [];
+	for (const sourceResult of results.results) {
+		for (const result of sourceResult.results) {
+			if (result.success) {
+				allGeneratedFiles.push(...result.filesWritten);
+			}
+		}
+	}
+
+	// Format generated files with Prettier
+	if (allGeneratedFiles.length > 0 && config.prettierConfig !== false) {
+		await formatFiles(allGeneratedFiles, config.prettierConfig);
 	}
 
 	// Print summary

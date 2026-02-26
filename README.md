@@ -71,6 +71,12 @@ Or using npm script:
 npm run generate
 ```
 
+### 4. Format Code
+
+```bash
+npm run formatCode
+```
+
 ## CLI Usage
 
 ```bash
@@ -138,16 +144,70 @@ test('API test example', async () => {
 });
 ```
 
+### With Request/Response Logging
+
+```typescript
+import { getLogger, configureLogger } from 'swagger-to-playwright-api-clients';
+import { BaseAPIClient } from './clients/BaseAPIClient';
+
+// Configure logger (optional - uses defaults if not called)
+configureLogger({
+	level: 'debug',
+	console: true,
+	file: false,
+});
+
+// Pass logger to BaseAPIClient for request/response logging
+const baseClient = new BaseAPIClient(
+	'https://api.example.com',
+	{ 'Content-Type': 'application/json' },
+	getLogger() // Winston logger instance
+);
+```
+
 ## Configuration Options
 
-| Option           | Type                  | Default                    | Description                          |
-| ---------------- | --------------------- | -------------------------- | ------------------------------------ |
-| `outputDir`      | string                | required                   | Output directory for generated files |
-| `sources`        | SwaggerSourceConfig[] | required                   | Array of swagger sources             |
-| `baseClientPath` | string                | `'../../../BaseAPIClient'` | Custom path to BaseAPIClient         |
-| `copyBaseClient` | boolean               | `true`                     | Copy BaseAPIClient to output         |
-| `cleanOutput`    | boolean               | `true`                     | Clean output before generation       |
-| `parallel`       | boolean               | `false`                    | Process sources in parallel          |
+| Option           | Type                         | Default                    | Description                          |
+| ---------------- | ---------------------------- | -------------------------- | ------------------------------------ |
+| `outputDir`      | string                       | required                   | Output directory for generated files |
+| `sources`        | SwaggerSourceConfig[]        | required                   | Array of swagger sources             |
+| `baseClientPath` | string                       | `'../../../BaseAPIClient'` | Custom path to BaseAPIClient         |
+| `copyBaseClient` | boolean                      | `true`                     | Copy BaseAPIClient to output         |
+| `cleanOutput`    | boolean                      | `true`                     | Clean output before generation       |
+| `parallel`       | boolean                      | `false`                    | Process sources in parallel          |
+| `logger`         | LoggerConfig                 | see below                  | Logger configuration                 |
+| `prettierConfig` | string \| false \| undefined | `undefined`                | Prettier config path or disable      |
+
+### Logger Configuration
+
+Configure logging for the generation process:
+
+```typescript
+const config: AutomationConfig = {
+	// ... other options
+	logger: {
+		level: 'info', // 'error' | 'warn' | 'info' | 'debug' | 'verbose'
+		outputDir: './logs', // Log file output directory
+		console: true, // Print logs to console
+		file: true, // Write logs to file
+	},
+};
+```
+
+| Option        | Type     | Default    | Description                    |
+| ------------- | -------- | ---------- | ------------------------------ |
+| `level`       | LogLevel | `'info'`   | Log level                      |
+| `outputDir`   | string   | `'./logs'` | Directory for log files        |
+| `console`     | boolean  | `true`     | Enable/disable console logging |
+| `file`        | boolean  | `true`     | Enable/disable file logging    |
+| `maxFileSize` | number   | `5242880`  | Max log file size (5MB)        |
+| `maxFiles`    | number   | `5`        | Max number of log files        |
+
+### Format Code
+
+```bash
+npm run formatCode
+```
 
 ### Source Configuration
 
