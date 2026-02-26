@@ -167,16 +167,15 @@ const baseClient = new BaseAPIClient(
 
 ## Configuration Options
 
-| Option           | Type                         | Default                    | Description                          |
-| ---------------- | ---------------------------- | -------------------------- | ------------------------------------ |
-| `outputDir`      | string                       | required                   | Output directory for generated files |
-| `sources`        | SwaggerSourceConfig[]        | required                   | Array of swagger sources             |
-| `baseClientPath` | string                       | `'../../../BaseAPIClient'` | Custom path to BaseAPIClient         |
-| `copyBaseClient` | boolean                      | `true`                     | Copy BaseAPIClient to output         |
-| `cleanOutput`    | boolean                      | `true`                     | Clean output before generation       |
-| `parallel`       | boolean                      | `false`                    | Process sources in parallel          |
-| `logger`         | LoggerConfig                 | see below                  | Logger configuration                 |
-| `prettierConfig` | string \| false \| undefined | `undefined`                | Prettier config path or disable      |
+| Option           | Type                  | Default                    | Description                          |
+| ---------------- | --------------------- | -------------------------- | ------------------------------------ |
+| `outputDir`      | string                | required                   | Output directory for generated files |
+| `sources`        | SwaggerSourceConfig[] | required                   | Array of swagger sources             |
+| `baseClientPath` | string                | `'../../../BaseAPIClient'` | Custom path to BaseAPIClient         |
+| `copyBaseClient` | boolean               | `true`                     | Copy BaseAPIClient to output         |
+| `cleanOutput`    | boolean               | `true`                     | Clean output before generation       |
+| `parallel`       | boolean               | `false`                    | Process sources in parallel          |
+| `logger`         | LoggerConfig          | see below                  | Logger configuration                 |
 
 ### Logger Configuration
 
@@ -202,12 +201,6 @@ const config: AutomationConfig = {
 | `file`        | boolean  | `true`     | Enable/disable file logging    |
 | `maxFileSize` | number   | `5242880`  | Max log file size (5MB)        |
 | `maxFiles`    | number   | `5`        | Max number of log files        |
-
-### Format Code
-
-```bash
-npm run formatCode
-```
 
 ### Source Configuration
 

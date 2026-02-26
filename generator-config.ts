@@ -51,12 +51,6 @@ const config: AutomationConfig = {
 		file: true,
 	},
 
-	// Prettier configuration for formatting generated code
-	// - undefined: auto-detect .prettierrc from project root (default)
-	// - string: path to custom prettier config file (e.g., './custom.prettierrc')
-	// - false: disable formatting
-	prettierConfig: undefined,
-
 	// Relative import path from generated client files to BaseAPIClient
 	// Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
 	// Default: '../../../BaseAPIClient' (library auto-copies BaseAPIClient.ts to outputDir)
