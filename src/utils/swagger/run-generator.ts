@@ -10,7 +10,7 @@ import {
 	SwaggerSourceConfig,
 	DEFAULT_BASE_CLIENT_PATH,
 } from '../../config/types';
-import logger from '../logger';
+import logger, { configureLogger, getLogger } from '../logger';
 
 /**
  * Results for all processed sources
@@ -176,9 +176,15 @@ async function cleanDirectory(dirPath: string): Promise<void> {
  * Run the generator for all configured sources
  */
 export async function runGenerator(config: AutomationConfig): Promise<RunResults> {
-	logger.info('='.repeat(60));
-	logger.info('Starting Swagger to Playwright API Client Generation');
-	logger.info('='.repeat(60));
+	// Configure logger from config if provided
+	if (config.logger) {
+		configureLogger(config.logger);
+	}
+
+	const log = getLogger();
+	log.info('='.repeat(60));
+	log.info('Starting Swagger to Playwright API Client Generation');
+	log.info('='.repeat(60));
 
 	const results: RunResults = {
 		totalSources: config.sources.length,
@@ -194,11 +200,11 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 	results.skipped = skippedSources.length;
 
 	if (skippedSources.length > 0) {
-		logger.info(`Skipping ${skippedSources.length} source(s)`);
+		log.info(`Skipping ${skippedSources.length} source(s)`);
 	}
 
 	if (activeSources.length === 0) {
-		logger.warn('No active sources to process. Check your automation-config.ts');
+		log.warn('No active sources to process. Check your automation-config.ts');
 		return results;
 	}
 
@@ -216,7 +222,7 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 	// Process sources
 	if (config.parallel) {
 		// Parallel processing
-		logger.info(`Processing ${activeSources.length} source(s) in parallel`);
+		log.info(`Processing ${activeSources.length} source(s) in parallel`);
 		const promises = activeSources.map((source) =>
 			processSource(source, generatedClientsDir, config.baseClientPath)
 		);
@@ -255,8 +261,8 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 	} else {
 		// Sequential processing
 		for (const source of activeSources) {
-			logger.info('-'.repeat(40));
-			logger.info(`Processing: ${source.source}`);
+			log.info('-'.repeat(40));
+			log.info(`Processing: ${source.source}`);
 
 			try {
 				const sourceResults = await processSource(
@@ -269,18 +275,16 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 				for (const result of sourceResults) {
 					if (result.success) {
 						results.successful++;
-						logger.info(
-							`✓ Generated ${result.filesWritten.length} files for ${result.serviceName}`
-						);
+						log.info(`✓ Generated ${result.filesWritten.length} files for ${result.serviceName}`);
 					} else {
 						results.failed++;
-						logger.error(`✗ Failed: ${result.errors.join(', ')}`);
+						log.error(`✗ Failed: ${result.errors.join(', ')}`);
 					}
 				}
 			} catch (error) {
 				results.failed++;
 				const errorMessage = error instanceof Error ? error.message : String(error);
-				logger.error(`✗ Exception: ${errorMessage}`);
+				log.error(`✗ Exception: ${errorMessage}`);
 				results.results.push({
 					source: source.source,
 					results: [
@@ -298,16 +302,16 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 	}
 
 	// Print summary
-	logger.info('='.repeat(60));
-	logger.info('Generation Complete');
-	logger.info('='.repeat(60));
-	logger.info(`Total Sources: ${results.totalSources}`);
-	logger.info(`Successful: ${results.successful}`);
-	logger.info(`Failed: ${results.failed}`);
-	logger.info(`Skipped: ${results.skipped}`);
+	log.info('='.repeat(60));
+	log.info('Generation Complete');
+	log.info('='.repeat(60));
+	log.info(`Total Sources: ${results.totalSources}`);
+	log.info(`Successful: ${results.successful}`);
+	log.info(`Failed: ${results.failed}`);
+	log.info(`Skipped: ${results.skipped}`);
 
 	if (results.failed > 0) {
-		logger.warn('Some sources failed. Check the logs above for details.');
+		log.warn('Some sources failed. Check the logs above for details.');
 	}
 
 	return results;

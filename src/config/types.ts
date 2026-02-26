@@ -3,6 +3,54 @@
  */
 
 /**
+ * Log level types
+ */
+export type LogLevel = 'error' | 'warn' | 'info' | 'debug' | 'verbose';
+
+/**
+ * Logger configuration options
+ */
+export interface LoggerConfig {
+	/**
+	 * Log level (can also be set via LOG_LEVEL environment variable)
+	 * Environment variable takes precedence if set
+	 * Default: 'info'
+	 */
+	level?: LogLevel;
+
+	/**
+	 * Output directory for log files
+	 * Default: './logs' (relative to project root)
+	 */
+	outputDir?: string;
+
+	/**
+	 * Whether to print logs to console
+	 * Can also be set via LOG_CONSOLE environment variable ('true' or 'false')
+	 * Default: true
+	 */
+	console?: boolean;
+
+	/**
+	 * Whether to write logs to file
+	 * Default: true
+	 */
+	file?: boolean;
+
+	/**
+	 * Maximum size of each log file in bytes
+	 * Default: 5242880 (5MB)
+	 */
+	maxFileSize?: number;
+
+	/**
+	 * Maximum number of log files to keep
+	 * Default: 5
+	 */
+	maxFiles?: number;
+}
+
+/**
  * Configuration for a single Swagger source
  */
 export interface SwaggerSourceConfig {
@@ -73,7 +121,24 @@ export interface AutomationConfig {
 	 * Optional: Whether to run in parallel (default: false for stability)
 	 */
 	parallel?: boolean;
+
+	/**
+	 * Optional: Logger configuration
+	 */
+	logger?: LoggerConfig;
 }
+
+/**
+ * Default logger configuration
+ */
+export const defaultLoggerConfig: LoggerConfig = {
+	level: 'info',
+	outputDir: './logs',
+	console: true,
+	file: true,
+	maxFileSize: 5242880, // 5MB
+	maxFiles: 5,
+};
 
 /**
  * Default configuration values
@@ -87,4 +152,5 @@ export const defaultConfig: Partial<AutomationConfig> = {
 	parallel: false,
 	copyBaseClient: true,
 	baseClientPath: DEFAULT_BASE_CLIENT_PATH,
+	logger: defaultLoggerConfig,
 };

@@ -9,13 +9,17 @@
  *   2. Run: npx swagger-to-playwright
  *   OR
  *   2. Run: npm run generate
+ *
+ * Environment Variables:
+ *   LOG_LEVEL: Override log level ('error' | 'warn' | 'info' | 'debug' | 'verbose')
+ *   LOG_CONSOLE: Enable/disable console logging ('true' | 'false')
  */
 
 import * as path from 'path';
-import type { AutomationConfig, SwaggerSourceConfig } from './src/config/types';
+import type { AutomationConfig, SwaggerSourceConfig, LoggerConfig } from './src/config/types';
 
 // Re-export types for external use
-export type { AutomationConfig, SwaggerSourceConfig };
+export type { AutomationConfig, SwaggerSourceConfig, LoggerConfig };
 
 /**
  * ============================================
@@ -38,6 +42,31 @@ const config: AutomationConfig = {
 
 	// Process sources in parallel (optional, default: false)
 	parallel: false,
+
+	// =====================================
+	// LOGGER CONFIGURATION
+	// =====================================
+	logger: {
+		// Log level: 'error' | 'warn' | 'info' | 'debug' | 'verbose'
+		// Can also be set via LOG_LEVEL environment variable (env takes precedence)
+		level: 'info',
+
+		// Output directory for log files (relative to project root or absolute path)
+		outputDir: './logs',
+
+		// Whether to print logs to console
+		// Can also be set via LOG_CONSOLE environment variable ('true' | 'false')
+		console: true,
+
+		// Whether to write logs to file
+		file: true,
+
+		// Maximum size of each log file in bytes (default: 5MB)
+		maxFileSize: 5242880,
+
+		// Maximum number of log files to keep
+		maxFiles: 5,
+	},
 
 	// List of Swagger/OpenAPI sources
 	sources: [

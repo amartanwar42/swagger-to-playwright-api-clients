@@ -27,9 +27,22 @@ export * from './utils/swagger/utils/pathUtils';
 export {
 	AutomationConfig,
 	SwaggerSourceConfig,
+	LoggerConfig,
+	LogLevel,
 	defaultConfig,
+	defaultLoggerConfig,
 	DEFAULT_BASE_CLIENT_PATH,
 } from './config/types';
+
+// Logger exports - use these to configure and access the logger
+export {
+	default as logger,
+	getLogger,
+	configureLogger,
+	getLoggerConfig,
+	logRequest,
+	logError,
+} from './utils/logger';
 
 // Runner
 export { runGenerator, RunResults } from './utils/swagger/run-generator';

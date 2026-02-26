@@ -4,6 +4,12 @@
  */
 
 import { request, APIRequestContext } from '@playwright/test';
+import { getLogger, configureLogger } from '../utils/logger';
+import type { Logger } from 'winston';
+
+// Re-export logger utilities for user convenience
+export { getLogger, configureLogger } from '../utils/logger';
+export { LoggerConfig, LogLevel } from '../config/types';
 
 /**
  * Supported query parameter value types
@@ -29,40 +35,18 @@ export interface APIResponseResult<T = unknown> {
 }
 
 /**
- * Logger interface - implement this to customize logging
- */
-export interface APIClientLogger {
-	info(message: string): void;
-	debug(message: string): void;
-	error(message: string): void;
-}
-
-/**
- * Default console logger
- */
-const defaultLogger: APIClientLogger = {
-	info: (msg) => console.log(`[INFO] ${msg}`),
-	debug: (msg) => console.debug(`[DEBUG] ${msg}`),
-	error: (msg) => console.error(`[ERROR] ${msg}`),
-};
-
-/**
  * BaseAPIClient - Provides HTTP methods using Playwright's request API
  */
 export class BaseAPIClient {
 	private baseURL: string;
 	private defaultHeaders: Record<string, string>;
 	private context: APIRequestContext | null = null;
-	private logger: APIClientLogger;
+	private logger: Logger;
 
-	constructor(
-		baseURL: string,
-		defaultHeaders: Record<string, string> = {},
-		logger: APIClientLogger = defaultLogger
-	) {
+	constructor(baseURL: string, defaultHeaders: Record<string, string> = {}, logger?: Logger) {
 		this.baseURL = baseURL;
 		this.defaultHeaders = defaultHeaders;
-		this.logger = logger;
+		this.logger = logger || getLogger();
 	}
 
 	/**

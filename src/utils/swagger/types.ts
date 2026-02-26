@@ -23,7 +23,7 @@ export interface SwaggerParameter {
 }
 
 export interface SchemaObject {
-	type?: string;
+	type?: string | string[];
 	format?: string;
 	$ref?: string;
 	items?: SchemaObject;

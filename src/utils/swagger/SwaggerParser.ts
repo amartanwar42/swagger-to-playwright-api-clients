@@ -238,7 +238,17 @@ export class SwaggerParser {
 			return toPascalCase(this.extractRefName(items.$ref));
 		}
 
+		// Handle type as array (union)
+		if (Array.isArray(items.type)) {
+			return items.type.map((t) => this.primitiveToTypeScript(t)).join(' | ');
+		}
+
 		if (items.type) {
+			// If it's an object with properties, generate the full type
+			if (items.type === 'object' && items.properties) {
+				return this.objectSchemaToTypeScript(items);
+			}
+
 			const typeMap: Record<string, string> = {
 				string: 'string',
 				integer: 'number',
@@ -283,8 +293,24 @@ export class SwaggerParser {
 			};
 		}
 
-		// Handle array
-		if (schema.type === 'array' && schema.items) {
+		// Handle type as array (union types like ["string", "object"])
+		if (Array.isArray(schema.type)) {
+			return {
+				typeName: defaultName,
+				typeDefinition: this.schemaToTypeScript(schema),
+			};
+		}
+
+		// Handle array type
+		if (schema.type === 'array') {
+			// Check for empty items object or missing items
+			if (!schema.items || Object.keys(schema.items).length === 0) {
+				return {
+					typeName: 'unknown[]',
+					typeDefinition: 'unknown[]',
+					isArray: true,
+				};
+			}
 			const itemsSchema = this.parseSchema(schema.items, `${defaultName}Item`);
 			return {
 				typeName: `${itemsSchema.typeName}[]`,
@@ -366,8 +392,23 @@ export class SwaggerParser {
 			return this.schemaToTypeScript(schema.default as SchemaObject);
 		}
 
-		// Handle array
-		if (schema.type === 'array' && schema.items) {
+		// Handle type as array (union types like ["string", "object"])
+		if (Array.isArray(schema.type)) {
+			const types = schema.type.map((t) => {
+				if (t === 'object' && schema.properties) {
+					return this.objectSchemaToTypeScript(schema);
+				}
+				return this.primitiveToTypeScript(t);
+			});
+			return types.join(' | ');
+		}
+
+		// Handle array type
+		if (schema.type === 'array') {
+			// Check for empty items object or missing items
+			if (!schema.items || Object.keys(schema.items).length === 0) {
+				return 'unknown[]';
+			}
 			return `${this.schemaToTypeScript(schema.items)}[]`;
 		}
 
@@ -401,6 +442,13 @@ export class SwaggerParser {
 		}
 
 		// Handle primitive types
+		return this.primitiveToTypeScript(schema.type);
+	}
+
+	/**
+	 * Convert primitive type string to TypeScript type
+	 */
+	private primitiveToTypeScript(type: string | undefined, nullable?: boolean): string {
 		const typeMap: Record<string, string> = {
 			string: 'string',
 			integer: 'number',
@@ -408,12 +456,12 @@ export class SwaggerParser {
 			boolean: 'boolean',
 			null: 'null',
 			file: 'File',
+			object: 'Record<string, unknown>',
 		};
 
-		const baseType = typeMap[schema.type || 'unknown'] || 'unknown';
+		const baseType = typeMap[type || 'unknown'] || 'unknown';
 
-		// Handle nullable
-		if (schema.nullable) {
+		if (nullable) {
 			return `${baseType} | null`;
 		}
 
