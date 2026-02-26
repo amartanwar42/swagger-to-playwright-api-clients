@@ -7,7 +7,7 @@ import * as path from 'path';
 import logger from './logger';
 
 /**
- * BaseAPIClient template content - with Winston logger
+ * BaseAPIClient template content - uses winston.Logger
  */
 const BASE_API_CLIENT_CONTENT = `/**
  * BaseAPIClient - Base class for making API requests using Playwright's APIRequestContext
@@ -15,186 +15,7 @@ const BASE_API_CLIENT_CONTENT = `/**
  */
 
 import { request, APIRequestContext } from '@playwright/test';
-import winston from 'winston';
-import * as path from 'path';
-import * as fs from 'fs';
-
-/**
- * Log level types
- */
-export type LogLevel = 'error' | 'warn' | 'info' | 'debug' | 'verbose';
-
-/**
- * Logger configuration options
- */
-export interface LoggerConfig {
-	/**
-	 * Log level (can also be set via LOG_LEVEL environment variable)
-	 * Environment variable takes precedence if set
-	 * Default: 'info'
-	 */
-	level?: LogLevel;
-
-	/**
-	 * Output directory for log files
-	 * Default: './logs' (relative to project root)
-	 */
-	outputDir?: string;
-
-	/**
-	 * Whether to print logs to console
-	 * Can also be set via LOG_CONSOLE environment variable ('true' or 'false')
-	 * Default: true
-	 */
-	console?: boolean;
-
-	/**
-	 * Whether to write logs to file
-	 * Default: true
-	 */
-	file?: boolean;
-
-	/**
-	 * Maximum size of each log file in bytes
-	 * Default: 5242880 (5MB)
-	 */
-	maxFileSize?: number;
-
-	/**
-	 * Maximum number of log files to keep
-	 * Default: 5
-	 */
-	maxFiles?: number;
-}
-
-/**
- * Default logger configuration
- */
-const defaultLoggerConfig: LoggerConfig = {
-	level: 'info',
-	outputDir: './logs',
-	console: true,
-	file: true,
-	maxFileSize: 5242880,
-	maxFiles: 5,
-};
-
-// Store logger instance
-let loggerInstance: winston.Logger | null = null;
-let currentConfig: LoggerConfig = { ...defaultLoggerConfig };
-
-/**
- * Get log level from environment or config
- */
-function getLogLevel(config: LoggerConfig): LogLevel {
-	const envLevel = process.env.LOG_LEVEL as LogLevel | undefined;
-	return envLevel || config.level || 'info';
-}
-
-/**
- * Check if console logging is enabled
- */
-function isConsoleEnabled(config: LoggerConfig): boolean {
-	const envConsole = process.env.LOG_CONSOLE;
-	if (envConsole !== undefined) {
-		return envConsole.toLowerCase() === 'true';
-	}
-	return config.console !== false;
-}
-
-/**
- * File format for logs
- */
-const fileFormat = winston.format.combine(
-	winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-	winston.format.errors({ stack: true }),
-	winston.format.printf(({ level, message, timestamp, stack }) => {
-		if (stack) {
-			return \`\${timestamp} [\${level.toUpperCase()}]: \${message}\\n\${stack}\`;
-		}
-		return \`\${timestamp} [\${level.toUpperCase()}]: \${message}\`;
-	})
-);
-
-/**
- * Console format with colors
- */
-const consoleFormat = winston.format.combine(
-	winston.format.colorize({ all: true }),
-	winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-	winston.format.printf(({ level, message, timestamp }) => {
-		return \`\${timestamp} [\${level}]: \${message}\`;
-	})
-);
-
-/**
- * Create logger instance
- */
-function createLogger(config: LoggerConfig = {}): winston.Logger {
-	const mergedConfig: LoggerConfig = { ...defaultLoggerConfig, ...config };
-	const logLevel = getLogLevel(mergedConfig);
-	const consoleEnabled = isConsoleEnabled(mergedConfig);
-	const logDir = path.resolve(process.cwd(), mergedConfig.outputDir || './logs');
-
-	if (mergedConfig.file !== false) {
-		if (!fs.existsSync(logDir)) {
-			fs.mkdirSync(logDir, { recursive: true });
-		}
-	}
-
-	const transports: winston.transport[] = [];
-
-	if (consoleEnabled) {
-		transports.push(
-			new winston.transports.Console({
-				format: consoleFormat,
-			})
-		);
-	}
-
-	if (mergedConfig.file !== false) {
-		transports.push(
-			new winston.transports.File({
-				filename: path.join(logDir, 'combined.log'),
-				maxsize: mergedConfig.maxFileSize || 5242880,
-				maxFiles: mergedConfig.maxFiles || 5,
-			})
-		);
-		transports.push(
-			new winston.transports.File({
-				filename: path.join(logDir, 'error.log'),
-				level: 'error',
-				maxsize: mergedConfig.maxFileSize || 5242880,
-				maxFiles: mergedConfig.maxFiles || 5,
-			})
-		);
-	}
-
-	return winston.createLogger({
-		level: logLevel,
-		format: fileFormat,
-		transports,
-	});
-}
-
-/**
- * Configure the logger with given configuration
- */
-export function configureLogger(config: LoggerConfig = {}): winston.Logger {
-	currentConfig = { ...defaultLoggerConfig, ...config };
-	loggerInstance = createLogger(currentConfig);
-	return loggerInstance;
-}
-
-/**
- * Get the current logger instance
- */
-export function getLogger(): winston.Logger {
-	if (!loggerInstance) {
-		loggerInstance = createLogger(currentConfig);
-	}
-	return loggerInstance;
-}
+import type { Logger } from 'winston';
 
 /**
  * Supported query parameter value types
@@ -221,21 +42,29 @@ export interface APIResponseResult<T = unknown> {
 
 /**
  * BaseAPIClient - Provides HTTP methods using Playwright's request API
+ * 
+ * @example
+ * // Without logging
+ * const client = new BaseAPIClient('https://api.example.com');
+ * 
+ * // With Winston logger from the library
+ * import { getLogger } from 'swagger-to-playwright-api-clients';
+ * const client = new BaseAPIClient('https://api.example.com', {}, getLogger());
  */
 export class BaseAPIClient {
 	private baseURL: string;
 	private defaultHeaders: Record<string, string>;
 	private context: APIRequestContext | null = null;
-	private logger: winston.Logger;
+	private logger?: Logger;
 
 	constructor(
 		baseURL: string,
 		defaultHeaders: Record<string, string> = {},
-		logger?: winston.Logger
+		logger?: Logger
 	) {
 		this.baseURL = baseURL;
 		this.defaultHeaders = defaultHeaders;
-		this.logger = logger || getLogger();
+		this.logger = logger;
 	}
 
 	/**
@@ -246,7 +75,7 @@ export class BaseAPIClient {
 			baseURL: this.baseURL,
 			extraHTTPHeaders: this.defaultHeaders,
 		});
-		this.logger.info(\`BaseAPIClient initialized with baseURL: \${this.baseURL}\`);
+		this.logger?.info(\`BaseAPIClient initialized with baseURL: \${this.baseURL}\`);
 	}
 
 	/**
@@ -256,7 +85,7 @@ export class BaseAPIClient {
 		if (this.context) {
 			await this.context.dispose();
 			this.context = null;
-			this.logger.info('BaseAPIClient disposed');
+			this.logger?.info('BaseAPIClient disposed');
 		}
 	}
 
@@ -307,11 +136,11 @@ export class BaseAPIClient {
 		headers?: Record<string, string>,
 		body?: unknown
 	): void {
-		this.logger.info(\`>>> \${method} \${this.baseURL}\${url}\`);
+		this.logger?.info(\`>>> \${method} \${this.baseURL}\${url}\`);
 		const allHeaders = { ...this.defaultHeaders, ...headers };
-		this.logger.debug(\`Headers: \${JSON.stringify(allHeaders, null, 2)}\`);
+		this.logger?.debug(\`Headers: \${JSON.stringify(allHeaders, null, 2)}\`);
 		if (body !== undefined) {
-			this.logger.info(\`Body: \${JSON.stringify(body, null, 2)}\`);
+			this.logger?.info(\`Body: \${JSON.stringify(body, null, 2)}\`);
 		}
 	}
 
@@ -319,8 +148,8 @@ export class BaseAPIClient {
 	 * Log response details
 	 */
 	private logResponse<T>(method: string, url: string, status: number, body: T): void {
-		this.logger.info(\`<<< \${method} \${this.baseURL}\${url} - Status: \${status}\`);
-		this.logger.info(\`Response: \${JSON.stringify(body, null, 2)}\`);
+		this.logger?.info(\`<<< \${method} \${this.baseURL}\${url} - Status: \${status}\`);
+		this.logger?.info(\`Response: \${JSON.stringify(body, null, 2)}\`);
 	}
 
 	/**

@@ -104,10 +104,28 @@ const config: AutomationConfig = {
   // Process sources in parallel
   parallel: false,
 
+  // Whether to copy BaseAPIClient.ts to output directory
+  copyBaseClient: true,
+
   // BaseAPIClient import path (relative to generated client files)
   // Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
   // Default: '../../../BaseAPIClient' - library will copy BaseAPIClient.ts to outputDir
   // baseClientPath: '../../../BaseAPIClient',
+
+  // Logger configuration for the generator process
+  logger: {
+    // Log level: 'error' | 'warn' | 'info' | 'debug' | 'verbose'
+    level: 'info',
+
+    // Output directory for log files
+    outputDir: './logs',
+
+    // Whether to print logs to console
+    console: true,
+
+    // Whether to write logs to file
+    file: true,
+  },
 
   // Swagger/OpenAPI sources
   sources: [
@@ -116,6 +134,14 @@ const config: AutomationConfig = {
     //   type: 'file',
     //   source: './swagger/api.json',
     //   serviceName: 'MyService',
+    //   // skip: false, // Optional: skip this source
+    // },
+
+    // Example: Directory containing multiple Swagger JSON files
+    // {
+    //   type: 'file',
+    //   source: './swagger',
+    //   serviceName: 'MultiService',
     // },
 
     // Example: Remote URL
@@ -123,6 +149,7 @@ const config: AutomationConfig = {
     //   type: 'url',
     //   source: 'https://api.example.com/swagger.json',
     //   serviceName: 'ExampleService',
+    //   // outputDir: './custom-output', // Optional: custom output directory
     // },
   ],
 };

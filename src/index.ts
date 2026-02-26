@@ -55,5 +55,8 @@ export {
 	QueryParamValue,
 } from './clients/BaseAPIClient';
 
+// Copy utilities for generated output
+export { copyBaseClient } from './utils/copyBaseClient';
+
 // Programmatic API
 export { generate, generateFromConfig, loadConfig } from './api';

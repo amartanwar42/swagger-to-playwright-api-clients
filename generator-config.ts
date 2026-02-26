@@ -9,10 +9,6 @@
  *   2. Run: npx swagger-to-playwright
  *   OR
  *   2. Run: npm run generate
- *
- * Environment Variables:
- *   LOG_LEVEL: Override log level ('error' | 'warn' | 'info' | 'debug' | 'verbose')
- *   LOG_CONSOLE: Enable/disable console logging ('true' | 'false')
  */
 
 import * as path from 'path';
@@ -31,42 +27,34 @@ const config: AutomationConfig = {
 	// Output directory for all generated API clients
 	outputDir: path.join(__dirname, 'src/clients/'),
 
-	// Relative import path from generated client files to BaseAPIClient
-	// Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
-	// Default: '../../../BaseAPIClient' (library will auto-copy BaseAPIClient.ts to outputDir)
-	// If you have a custom BaseAPIClient, specify the path here:
-	// baseClientPath: '../../../BaseAPIClient',
-
-	// Clean the output directory before generating (optional)
+	// Clean the output directory before generating
 	cleanOutput: true,
 
-	// Process sources in parallel (optional, default: false)
+	// Process sources in parallel (default: false for stability)
 	parallel: false,
 
-	// =====================================
-	// LOGGER CONFIGURATION
-	// =====================================
+	// Copy BaseAPIClient.ts to output directory
+	copyBaseClient: true,
+
+	// Logger configuration for the generator process
 	logger: {
 		// Log level: 'error' | 'warn' | 'info' | 'debug' | 'verbose'
-		// Can also be set via LOG_LEVEL environment variable (env takes precedence)
 		level: 'info',
 
-		// Output directory for log files (relative to project root or absolute path)
+		// Output directory for log files
 		outputDir: './logs',
 
 		// Whether to print logs to console
-		// Can also be set via LOG_CONSOLE environment variable ('true' | 'false')
 		console: true,
 
 		// Whether to write logs to file
 		file: true,
-
-		// Maximum size of each log file in bytes (default: 5MB)
-		maxFileSize: 5242880,
-
-		// Maximum number of log files to keep
-		maxFiles: 5,
 	},
+
+	// Relative import path from generated client files to BaseAPIClient
+	// Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
+	// Default: '../../../BaseAPIClient' (library auto-copies BaseAPIClient.ts to outputDir)
+	// baseClientPath: '../../../BaseAPIClient',
 
 	// List of Swagger/OpenAPI sources
 	sources: [
