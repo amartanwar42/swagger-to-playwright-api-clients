@@ -65,18 +65,6 @@ export default config;
 npx swagger-to-playwright
 ```
 
-Or using npm script:
-
-```bash
-npm run generate
-```
-
-### 4. Format Code
-
-```bash
-npm run formatCode
-```
-
 ## CLI Usage
 
 ```bash
@@ -192,25 +180,6 @@ const config: AutomationConfig = {
 	},
 };
 ```
-
-| Option        | Type     | Default    | Description                    |
-| ------------- | -------- | ---------- | ------------------------------ |
-| `level`       | LogLevel | `'info'`   | Log level                      |
-| `outputDir`   | string   | `'./logs'` | Directory for log files        |
-| `console`     | boolean  | `true`     | Enable/disable console logging |
-| `file`        | boolean  | `true`     | Enable/disable file logging    |
-| `maxFileSize` | number   | `5242880`  | Max log file size (5MB)        |
-| `maxFiles`    | number   | `5`        | Max number of log files        |
-
-### Source Configuration
-
-| Option        | Type                | Description                   |
-| ------------- | ------------------- | ----------------------------- |
-| `type`        | `'file'` \| `'url'` | Source type                   |
-| `source`      | string              | Path or URL to swagger JSON   |
-| `serviceName` | string              | Override service name         |
-| `outputDir`   | string              | Custom output for this source |
-| `skip`        | boolean             | Skip this source              |
 
 ## Generated Structure
 
