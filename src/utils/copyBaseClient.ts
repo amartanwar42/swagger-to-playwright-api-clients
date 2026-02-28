@@ -15,7 +15,7 @@ const BASE_API_CLIENT_CONTENT = `/**
  */
 
 import { request, APIRequestContext } from '@playwright/test';
-import  { Logger } from 'swagger-to-playwright-api-clients';
+import  { logger } from 'swagger-to-playwright-api-clients';
 
 /**
  * Supported query parameter value types
