@@ -4,7 +4,7 @@
  */
 
 import { request, APIRequestContext } from '@playwright/test';
-import logger from '../utils/logger';
+import { logger } from '../index';
 
 /**
  * Supported query parameter value types
@@ -33,8 +33,7 @@ export interface APIResponseResult<T = unknown> {
  * BaseAPIClient - Provides HTTP methods using Playwright's request API
  *
  * @example
- * import { getLogger } from 'swagger-to-playwright-api-clients';
- * const client = new BaseAPIClient('https://api.example.com', {}, getLogger());
+ * const client = new BaseAPIClient('https://api.example.com', {});
  */
 export class BaseAPIClient {
 	private baseURL: string;
