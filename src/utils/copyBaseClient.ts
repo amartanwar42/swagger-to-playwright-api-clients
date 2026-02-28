@@ -7,7 +7,7 @@ import * as path from 'path';
 import logger from './logger';
 
 /**
- * BaseAPIClient template content - uses winston.Logger
+ * BaseAPIClient template content - uses swagger-to-playwright-api-clients Logger
  */
 const BASE_API_CLIENT_CONTENT = `/**
  * BaseAPIClient - Base class for making API requests using Playwright's APIRequestContext
@@ -15,7 +15,7 @@ const BASE_API_CLIENT_CONTENT = `/**
  */
 
 import { request, APIRequestContext } from '@playwright/test';
-import type { Logger } from 'winston';
+import  { Logger } from 'swagger-to-playwright-api-clients';
 
 /**
  * Supported query parameter value types
@@ -42,29 +42,18 @@ export interface APIResponseResult<T = unknown> {
 
 /**
  * BaseAPIClient - Provides HTTP methods using Playwright's request API
- * 
- * @example
- * // Without logging
- * const client = new BaseAPIClient('https://api.example.com');
- * 
- * // With Winston logger from the library
- * import { getLogger } from 'swagger-to-playwright-api-clients';
- * const client = new BaseAPIClient('https://api.example.com', {}, getLogger());
  */
 export class BaseAPIClient {
 	private baseURL: string;
 	private defaultHeaders: Record<string, string>;
 	private context: APIRequestContext | null = null;
-	private logger?: Logger;
 
 	constructor(
 		baseURL: string,
 		defaultHeaders: Record<string, string> = {},
-		logger?: Logger
 	) {
 		this.baseURL = baseURL;
 		this.defaultHeaders = defaultHeaders;
-		this.logger = logger;
 	}
 
 	/**
@@ -75,7 +64,7 @@ export class BaseAPIClient {
 			baseURL: this.baseURL,
 			extraHTTPHeaders: this.defaultHeaders,
 		});
-		this.logger?.info(\`BaseAPIClient initialized with baseURL: \${this.baseURL}\`);
+		logger.info(\`BaseAPIClient initialized with baseURL: \${this.baseURL}\`);
 	}
 
 	/**
@@ -85,7 +74,7 @@ export class BaseAPIClient {
 		if (this.context) {
 			await this.context.dispose();
 			this.context = null;
-			this.logger?.info('BaseAPIClient disposed');
+			logger.info('BaseAPIClient disposed');
 		}
 	}
 
@@ -136,11 +125,11 @@ export class BaseAPIClient {
 		headers?: Record<string, string>,
 		body?: unknown
 	): void {
-		this.logger?.info(\`>>> \${method} \${this.baseURL}\${url}\`);
+		logger.info(\`>>> \${method} \${this.baseURL}\${url}\`);
 		const allHeaders = { ...this.defaultHeaders, ...headers };
-		this.logger?.debug(\`Headers: \${JSON.stringify(allHeaders, null, 2)}\`);
+		logger.debug(\`Headers: \${JSON.stringify(allHeaders, null, 2)}\`);
 		if (body !== undefined) {
-			this.logger?.info(\`Body: \${JSON.stringify(body, null, 2)}\`);
+			logger.info(\`Body: \${JSON.stringify(body, null, 2)}\`);
 		}
 	}
 
@@ -148,8 +137,8 @@ export class BaseAPIClient {
 	 * Log response details
 	 */
 	private logResponse<T>(method: string, url: string, status: number, body: T): void {
-		this.logger?.info(\`<<< \${method} \${this.baseURL}\${url} - Status: \${status}\`);
-		this.logger?.info(\`Response: \${JSON.stringify(body, null, 2)}\`);
+		logger.info(\`<<< \${method} \${this.baseURL}\${url} - Status: \${status}\`);
+		logger.info(\`Response: \${JSON.stringify(body, null, 2)}\`);
 	}
 
 	/**
