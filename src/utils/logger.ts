@@ -9,6 +9,12 @@ let currentConfig: LoggerConfig = { ...defaultLoggerConfig };
 let configLoaded = false;
 
 /**
+ * Pre-resolved logger config file written during generation.
+ * This JSON file can always be loaded without ts-node.
+ */
+export const LOGGER_CONFIG_FILE = '.swagger-logger-config.json';
+
+/**
  * Config file names to look for (in order of priority)
  */
 const CONFIG_FILE_NAMES = [
@@ -22,6 +28,11 @@ const CONFIG_FILE_NAMES = [
  * Try to auto-discover and load logger config from the project's generator config file.
  * This ensures the logger settings from generator-config.ts are respected
  * even during test runs (not just during generation).
+ *
+ * Priority:
+ * 1. .swagger-logger-config.json (written during generation, always loadable)
+ * 2. generator-config.js / swagger-generator.config.js
+ * 3. generator-config.ts / swagger-generator.config.ts (requires ts-node)
  */
 function loadConfigFromFile(): LoggerConfig {
 	if (configLoaded) return currentConfig;
@@ -29,8 +40,21 @@ function loadConfigFromFile(): LoggerConfig {
 
 	const cwd = process.cwd();
 
+	// 1. Try the pre-resolved JSON config (written during generation)
+	const jsonConfigPath = path.join(cwd, LOGGER_CONFIG_FILE);
+	if (fs.existsSync(jsonConfigPath)) {
+		try {
+			const raw = fs.readFileSync(jsonConfigPath, 'utf-8');
+			const loggerConfig = JSON.parse(raw) as LoggerConfig;
+			currentConfig = { ...defaultLoggerConfig, ...loggerConfig };
+			return currentConfig;
+		} catch {
+			// JSON file exists but can't be parsed — fall through
+		}
+	}
+
+	// 2. Try .js config files (no ts-node needed)
 	for (const configName of CONFIG_FILE_NAMES) {
-		// Only try .js files (compiled config) — .ts files need ts-node which may not be available
 		if (!configName.endsWith('.js')) continue;
 
 		const configPath = path.join(cwd, configName);
@@ -48,7 +72,7 @@ function loadConfigFromFile(): LoggerConfig {
 		}
 	}
 
-	// Try loading .ts config files if ts-node is available
+	// 3. Try loading .ts config files if ts-node is available
 	for (const configName of CONFIG_FILE_NAMES) {
 		if (!configName.endsWith('.ts')) continue;
 
@@ -207,6 +231,28 @@ export function getLogger(): winston.Logger {
  */
 export function getLoggerConfig(): LoggerConfig {
 	return { ...currentConfig };
+}
+
+/**
+ * Persist the logger configuration as a JSON file in the project root.
+ * This allows the logger to discover the consumer's config during Playwright
+ * test runs without needing ts-node to load the .ts config file.
+ *
+ * Relative outputDir paths are resolved to absolute paths so they remain
+ * correct regardless of the working directory at runtime.
+ */
+export function persistLoggerConfig(config: LoggerConfig): void {
+	try {
+		const resolved: LoggerConfig = { ...config };
+		// Resolve relative outputDir to absolute so it works from any cwd
+		if (resolved.outputDir && !path.isAbsolute(resolved.outputDir)) {
+			resolved.outputDir = path.resolve(process.cwd(), resolved.outputDir);
+		}
+		const configPath = path.join(process.cwd(), LOGGER_CONFIG_FILE);
+		fs.writeFileSync(configPath, JSON.stringify(resolved, null, 2), 'utf-8');
+	} catch {
+		// Non-critical — logger will fall back to other discovery methods
+	}
 }
 
 // Create default logger instance

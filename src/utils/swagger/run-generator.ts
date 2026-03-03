@@ -10,7 +10,7 @@ import {
 	SwaggerSourceConfig,
 	DEFAULT_BASE_CLIENT_PATH,
 } from '../../config/types';
-import logger, { configureLogger, getLogger } from '../logger';
+import logger, { configureLogger, getLogger, persistLoggerConfig } from '../logger';
 import { formatFiles } from '../formatter';
 
 /**
@@ -164,6 +164,9 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 	// Configure logger from config if provided
 	if (config.logger) {
 		configureLogger(config.logger);
+		// Persist resolved logger config as JSON so it can be loaded at runtime
+		// (e.g., during Playwright tests) without needing ts-node
+		persistLoggerConfig(config.logger);
 	}
 
 	const log = getLogger();

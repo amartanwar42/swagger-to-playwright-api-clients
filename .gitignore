@@ -1,5 +1,6 @@
 # Log files
 logs/*
+.swagger-logger-config.json
 node_modules/
 dist/
 build/

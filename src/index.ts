@@ -40,6 +40,8 @@ export {
 	getLogger,
 	configureLogger,
 	getLoggerConfig,
+	persistLoggerConfig,
+	LOGGER_CONFIG_FILE,
 	logRequest,
 	logError,
 } from './utils/logger';
