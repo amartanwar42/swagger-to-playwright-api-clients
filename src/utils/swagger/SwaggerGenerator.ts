@@ -113,8 +113,8 @@ export class SwaggerGenerator {
 			// Generate types for all endpoints
 			typeGenerator.generateAllTypes(endpoints);
 
-			// Group endpoints by folder
-			const groups = groupEndpointsByFolder(document.paths, serviceName);
+			// Group endpoints by folder (no serviceName)
+			const groups = groupEndpointsByFolder(document.paths);
 
 			// Generate files for each group
 			for (const [folderKey, group] of groups) {
@@ -150,7 +150,8 @@ export class SwaggerGenerator {
 				}
 
 				// Generate client class
-				const className = `${folderPath.join('')}Client`;
+				// Only use the last folder segment for client file name (e.g., PetClient.ts)
+				const className = `${folderPath[folderPath.length - 1]}Client`;
 				const clientCode = clientGenerator.generateClientClass(
 					className,
 					groupEndpoints,

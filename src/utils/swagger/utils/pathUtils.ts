@@ -10,42 +10,26 @@ import { toPascalCase } from './naming';
  * Determine the folder structure for an endpoint
  * Groups endpoints logically based on path segments
  */
-export function determineFolderStructure(path: string, serviceName: string): string[] {
+export function determineFolderStructure(path: string): string[] {
 	const segments = path.split('/').filter((s) => s && !s.startsWith('{') && !s.endsWith('}'));
-
 	// Skip common prefixes
 	const filtered = segments.filter((s) => !['api', 'v1', 'v2', 'v3'].includes(s.toLowerCase()));
 
-	// Start with service name
-	const folders: string[] = [toPascalCase(serviceName)];
-
 	// If only one segment after filtering (e.g., /health, /metrics), use Root folder
 	if (filtered.length <= 1) {
-		folders.push('Root');
-		return folders;
+		return ['Root'];
 	}
 
 	// Check for therapist keyword - create dedicated folder
 	for (const segment of filtered) {
 		if (segment.toLowerCase().includes('therapist')) {
-			folders.push('Therapist');
-			break;
+			return ['Therapist'];
 		}
 	}
 
-	// Group by first meaningful segment after service name
-	if (filtered.length > 1) {
-		// Use the first segment after the service-like segment
-		const groupSegment = filtered[0];
-		if (
-			!folders.includes(toPascalCase(groupSegment)) &&
-			groupSegment.toLowerCase() !== 'therapist'
-		) {
-			folders.push(toPascalCase(groupSegment));
-		}
-	}
-
-	return folders;
+	// Group by first meaningful segment
+	// e.g., /pet/{petId}/uploadImage and /pet both go to Pet
+	return [toPascalCase(filtered[0])];
 }
 
 /**
@@ -110,13 +94,12 @@ export interface EndpointGroup {
 }
 
 export function groupEndpointsByFolder(
-	paths: Record<string, PathItemObject>,
-	serviceName: string
+	paths: Record<string, PathItemObject>
 ): Map<string, EndpointGroup> {
 	const groups = new Map<string, EndpointGroup>();
 
 	for (const [path, pathItem] of Object.entries(paths)) {
-		const folders = determineFolderStructure(path, serviceName);
+		const folders = determineFolderStructure(path);
 		const folderKey = folders.join('/');
 
 		if (!groups.has(folderKey)) {
