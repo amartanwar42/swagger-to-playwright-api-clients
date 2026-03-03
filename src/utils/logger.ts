@@ -6,6 +6,79 @@ import { LoggerConfig, LogLevel, defaultLoggerConfig } from '../config/types';
 // Store the current logger instance
 let loggerInstance: winston.Logger | null = null;
 let currentConfig: LoggerConfig = { ...defaultLoggerConfig };
+let configLoaded = false;
+
+/**
+ * Config file names to look for (in order of priority)
+ */
+const CONFIG_FILE_NAMES = [
+	'generator-config.js',
+	'generator-config.ts',
+	'swagger-generator.config.js',
+	'swagger-generator.config.ts',
+];
+
+/**
+ * Try to auto-discover and load logger config from the project's generator config file.
+ * This ensures the logger settings from generator-config.ts are respected
+ * even during test runs (not just during generation).
+ */
+function loadConfigFromFile(): LoggerConfig {
+	if (configLoaded) return currentConfig;
+	configLoaded = true;
+
+	const cwd = process.cwd();
+
+	for (const configName of CONFIG_FILE_NAMES) {
+		// Only try .js files (compiled config) — .ts files need ts-node which may not be available
+		if (!configName.endsWith('.js')) continue;
+
+		const configPath = path.join(cwd, configName);
+		if (fs.existsSync(configPath)) {
+			try {
+				const config = require(configPath);
+				const resolvedConfig = config.default || config;
+				if (resolvedConfig?.logger) {
+					currentConfig = { ...defaultLoggerConfig, ...resolvedConfig.logger };
+					return currentConfig;
+				}
+			} catch {
+				// Config file exists but can't be loaded — fall through to defaults
+			}
+		}
+	}
+
+	// Try loading .ts config files if ts-node is available
+	for (const configName of CONFIG_FILE_NAMES) {
+		if (!configName.endsWith('.ts')) continue;
+
+		const configPath = path.join(cwd, configName);
+		if (fs.existsSync(configPath)) {
+			try {
+				// Check if ts-node is already registered or available
+				require.resolve('ts-node');
+				try {
+					require('ts-node').register({
+						transpileOnly: true,
+						compilerOptions: { module: 'commonjs' },
+					});
+				} catch {
+					// ts-node may already be registered
+				}
+				const config = require(configPath);
+				const resolvedConfig = config.default || config;
+				if (resolvedConfig?.logger) {
+					currentConfig = { ...defaultLoggerConfig, ...resolvedConfig.logger };
+					return currentConfig;
+				}
+			} catch {
+				// ts-node not available or config failed to load — use defaults
+			}
+		}
+	}
+
+	return currentConfig;
+}
 
 /**
  * Get log level from environment or config
@@ -119,10 +192,11 @@ export function configureLogger(config: LoggerConfig = {}): winston.Logger {
 
 /**
  * Get the current logger instance
- * If not initialized, creates a default logger
+ * If not initialized, auto-discovers config from generator-config file
  */
 export function getLogger(): winston.Logger {
 	if (!loggerInstance) {
+		loadConfigFromFile();
 		loggerInstance = createLogger(currentConfig);
 	}
 	return loggerInstance;
