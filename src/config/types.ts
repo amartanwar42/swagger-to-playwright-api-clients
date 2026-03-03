@@ -68,11 +68,6 @@ export interface SwaggerSourceConfig {
 	source: string;
 
 	/**
-	 * Optional: Override the service name (defaults to title from swagger info)
-	 */
-	serviceName?: string;
-
-	/**
 	 * Optional: Custom output directory for this source
 	 * If not specified, uses the global outputDir
 	 */
@@ -101,8 +96,8 @@ export interface AutomationConfig {
 
 	/**
 	 * Optional: Path to BaseAPIClient (relative to generated client files)
-	 * Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
-	 * Default: '../../../BaseAPIClient' (points to outputDir/BaseAPIClient.ts)
+	 * Generated clients are at: outputDir/generatedClients/FolderName/
+	 * Default: '../../BaseAPIClient' (points to outputDir/BaseAPIClient.ts)
 	 */
 	baseClientPath?: string;
 
@@ -149,10 +144,10 @@ export const defaultLoggerConfig: LoggerConfig = {
 
 /**
  * Default configuration values
- * Path is relative from: outputDir/generatedClients/ServiceName/FolderName/
+ * Path is relative from: outputDir/generatedClients/FolderName/
  * to: outputDir/BaseAPIClient.ts
  */
-export const DEFAULT_BASE_CLIENT_PATH = '../../../BaseAPIClient';
+export const DEFAULT_BASE_CLIENT_PATH = '../../BaseAPIClient';
 
 export const defaultConfig: Partial<AutomationConfig> = {
 	cleanOutput: true,

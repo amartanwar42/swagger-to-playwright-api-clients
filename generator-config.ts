@@ -52,9 +52,9 @@ const config: AutomationConfig = {
 	},
 
 	// Relative import path from generated client files to BaseAPIClient
-	// Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
-	// Default: '../../../BaseAPIClient' (library auto-copies BaseAPIClient.ts to outputDir)
-	// baseClientPath: '../../../BaseAPIClient',
+	// Generated clients are at: outputDir/generatedClients/FolderName/
+	// Default: '../../BaseAPIClient' (library auto-copies BaseAPIClient.ts to outputDir)
+	// baseClientPath: '../../BaseAPIClient',
 
 	// List of Swagger/OpenAPI sources
 	sources: [
@@ -64,7 +64,6 @@ const config: AutomationConfig = {
 		// {
 		//   type: 'file',
 		//   source: './swagger/petstore.json',
-		//   serviceName: 'PetStoreService',
 		// },
 		// =====================================
 		// EXAMPLE: Directory with multiple JSON files
@@ -72,7 +71,6 @@ const config: AutomationConfig = {
 		// {
 		//   type: 'file',
 		//   source: './swagger/', // Directory containing swagger JSON files
-		//   // serviceName is optional - uses filename as service name if not provided
 		// },
 		// =====================================
 		// EXAMPLE: Remote URL
@@ -80,25 +78,21 @@ const config: AutomationConfig = {
 		// {
 		//   type: 'url',
 		//   source: 'https://petstore.swagger.io/v2/swagger.json',
-		//   serviceName: 'PetStoreService',
 		// },
 		// =====================================
-		// EXAMPLE: Multiple services
+		// EXAMPLE: Multiple sources
 		// =====================================
 		// {
 		//   type: 'url',
 		//   source: 'https://api.example.com/v1/swagger.json',
-		//   serviceName: 'ActivityService',
 		// },
 		// {
 		//   type: 'file',
 		//   source: './swagger/users-api.json',
-		//   serviceName: 'UserService',
 		// },
 		// {
 		//   type: 'url',
 		//   source: 'https://api.example.com/v2/openapi.json',
-		//   serviceName: 'PaymentService',
 		//   skip: true, // Skip this source temporarily
 		// },
 		// =====================================

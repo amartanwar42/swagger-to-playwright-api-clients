@@ -44,7 +44,6 @@ Options:
   --file <path>         Generate from a single swagger file
   --url <url>           Generate from a single swagger URL
   --output <dir>        Output directory (default: ./src/clients)
-  --name <name>         Service name override
   --help, -h            Show this help message
   --version, -v         Show version
 
@@ -108,9 +107,9 @@ const config: AutomationConfig = {
   copyBaseClient: true,
 
   // BaseAPIClient import path (relative to generated client files)
-  // Generated clients are at: outputDir/generatedClients/ServiceName/FolderName/
-  // Default: '../../../BaseAPIClient' - library will copy BaseAPIClient.ts to outputDir
-  // baseClientPath: '../../../BaseAPIClient',
+  // Generated clients are at: outputDir/generatedClients/FolderName/
+  // Default: '../../BaseAPIClient' - library will copy BaseAPIClient.ts to outputDir
+  // baseClientPath: '../../BaseAPIClient',
 
   // Logger configuration for the generator process
   logger: {
@@ -139,7 +138,6 @@ const config: AutomationConfig = {
     // {
     //   type: 'file',
     //   source: './swagger/api.json',
-    //   serviceName: 'MyService',
     //   // skip: false, // Optional: skip this source
     // },
 
@@ -147,14 +145,12 @@ const config: AutomationConfig = {
     // {
     //   type: 'file',
     //   source: './swagger',
-    //   serviceName: 'MultiService',
     // },
 
     // Example: Remote URL
     // {
     //   type: 'url',
     //   source: 'https://api.example.com/swagger.json',
-    //   serviceName: 'ExampleService',
     //   // outputDir: './custom-output', // Optional: custom output directory
     // },
   ],
@@ -195,11 +191,9 @@ async function main(): Promise<void> {
 	const fileIndex = args.indexOf('--file');
 	const urlIndex = args.indexOf('--url');
 	const outputIndex = args.indexOf('--output');
-	const nameIndex = args.indexOf('--name');
 
 	if (fileIndex !== -1 || urlIndex !== -1) {
 		const outputDir = outputIndex !== -1 ? args[outputIndex + 1] : './src/clients';
-		const serviceName = nameIndex !== -1 ? args[nameIndex + 1] : undefined;
 
 		const type = fileIndex !== -1 ? 'file' : 'url';
 		const source = fileIndex !== -1 ? args[fileIndex + 1] : args[urlIndex + 1];
@@ -215,7 +209,6 @@ async function main(): Promise<void> {
 			source,
 			type,
 			outputDir: path.resolve(outputDir),
-			serviceName,
 		});
 
 		if (result.success) {

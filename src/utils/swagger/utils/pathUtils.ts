@@ -15,8 +15,8 @@ export function determineFolderStructure(path: string): string[] {
 	// Skip common prefixes
 	const filtered = segments.filter((s) => !['api', 'v1', 'v2', 'v3'].includes(s.toLowerCase()));
 
-	// If only one segment after filtering (e.g., /health, /metrics), use Root folder
-	if (filtered.length <= 1) {
+	// If no segments after filtering, use Root folder
+	if (filtered.length === 0) {
 		return ['Root'];
 	}
 

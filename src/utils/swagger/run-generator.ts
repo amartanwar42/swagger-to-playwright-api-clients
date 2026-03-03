@@ -33,12 +33,10 @@ export interface RunResults {
 async function processSingleSource(
 	filePath: string,
 	outputDir: string,
-	serviceName: string | undefined,
 	baseClientPath: string
 ): Promise<GeneratorResult> {
 	const generator = new SwaggerGenerator({
 		outputDir,
-		serviceName,
 		baseClientPath,
 	});
 	return generator.generateFromFile(filePath);
@@ -50,7 +48,6 @@ async function processSingleSource(
 async function processDirectory(
 	dirPath: string,
 	outputDir: string,
-	serviceName: string | undefined,
 	baseClientPath: string
 ): Promise<GeneratorResult[]> {
 	const results: GeneratorResult[] = [];
@@ -66,7 +63,7 @@ async function processDirectory(
 			return [
 				{
 					success: false,
-					serviceName: serviceName || '',
+					serviceName: '',
 					filesWritten: [],
 					folderStructure: '',
 					errors: [`No JSON files found in directory: ${dirPath}`],
@@ -78,16 +75,9 @@ async function processDirectory(
 
 		for (const jsonFile of jsonFiles) {
 			const filePath = path.join(dirPath, jsonFile);
-			// Use filename (without extension) as service name if not provided
-			const fileServiceName = serviceName || path.basename(jsonFile, '.json');
 			logger.info(`Processing: ${jsonFile}`);
 
-			const result = await processSingleSource(
-				filePath,
-				outputDir,
-				fileServiceName,
-				baseClientPath
-			);
+			const result = await processSingleSource(filePath, outputDir, baseClientPath);
 			results.push(result);
 		}
 	} catch (error) {
@@ -95,7 +85,7 @@ async function processDirectory(
 		logger.error(`Failed to read directory: ${errorMessage}`);
 		results.push({
 			success: false,
-			serviceName: serviceName || '',
+			serviceName: '',
 			filesWritten: [],
 			folderStructure: '',
 			errors: [`Failed to read directory: ${errorMessage}`],
@@ -127,14 +117,9 @@ async function processSource(
 			const stats = await fs.promises.stat(sourcePath);
 
 			if (stats.isDirectory()) {
-				return processDirectory(sourcePath, outputDir, sourceConfig.serviceName, clientPath);
+				return processDirectory(sourcePath, outputDir, clientPath);
 			} else {
-				const result = await processSingleSource(
-					sourcePath,
-					outputDir,
-					sourceConfig.serviceName,
-					clientPath
-				);
+				const result = await processSingleSource(sourcePath, outputDir, clientPath);
 				return [result];
 			}
 		} catch (error) {
@@ -142,7 +127,7 @@ async function processSource(
 			return [
 				{
 					success: false,
-					serviceName: sourceConfig.serviceName || '',
+					serviceName: '',
 					filesWritten: [],
 					folderStructure: '',
 					errors: [`Failed to access source: ${errorMessage}`],
@@ -153,7 +138,6 @@ async function processSource(
 		// URL source
 		const generator = new SwaggerGenerator({
 			outputDir,
-			serviceName: sourceConfig.serviceName,
 			baseClientPath: clientPath,
 		});
 		const result = await generator.generateFromUrl(sourceConfig.source);

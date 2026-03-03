@@ -16,7 +16,6 @@ import logger from '../logger';
 
 export interface GeneratorOptions {
 	outputDir: string;
-	serviceName?: string;
 	baseClientPath?: string;
 }
 
@@ -96,7 +95,7 @@ export class SwaggerGenerator {
 		try {
 			// Initialize parser
 			const parser = new SwaggerParser(document);
-			const serviceName = this.options.serviceName || parser.getServiceName();
+			const serviceName = parser.getServiceName();
 
 			logger.info(`Generating API client for: ${serviceName}`);
 			logger.info(`OpenAPI version: ${parser.isSwagger2() ? '2.0' : '3.x'}`);
@@ -200,21 +199,16 @@ export class SwaggerGenerator {
  */
 export async function generateFromFile(
 	filePath: string,
-	outputDir: string,
-	serviceName?: string
+	outputDir: string
 ): Promise<GeneratorResult> {
-	const generator = new SwaggerGenerator({ outputDir, serviceName });
+	const generator = new SwaggerGenerator({ outputDir });
 	return generator.generateFromFile(filePath);
 }
 
 /**
  * Convenience function to generate from URL
  */
-export async function generateFromUrl(
-	url: string,
-	outputDir: string,
-	serviceName?: string
-): Promise<GeneratorResult> {
-	const generator = new SwaggerGenerator({ outputDir, serviceName });
+export async function generateFromUrl(url: string, outputDir: string): Promise<GeneratorResult> {
+	const generator = new SwaggerGenerator({ outputDir });
 	return generator.generateFromUrl(url);
 }

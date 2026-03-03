@@ -18,7 +18,6 @@ export async function generate(options: {
 	source: string;
 	type: 'file' | 'url';
 	outputDir: string;
-	serviceName?: string;
 	baseClientPath?: string;
 	copyBaseClient?: boolean;
 }): Promise<GeneratorResult> {
@@ -26,7 +25,6 @@ export async function generate(options: {
 		source,
 		type,
 		outputDir,
-		serviceName,
 		baseClientPath,
 		copyBaseClient: shouldCopyBaseClient = true,
 	} = options;
@@ -41,7 +39,6 @@ export async function generate(options: {
 
 	const generator = new SwaggerGenerator({
 		outputDir: generatedClientsDir,
-		serviceName,
 		baseClientPath: baseClientPath || DEFAULT_BASE_CLIENT_PATH,
 	});
 
