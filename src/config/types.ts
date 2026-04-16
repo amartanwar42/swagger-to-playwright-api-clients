@@ -135,6 +135,13 @@ export interface AutomationConfig {
 	 * Default: true
 	 */
 	generateFixtures?: boolean;
+
+	/**
+	 * Optional: Output directory for the generated fixtures file.
+	 * Can be absolute or relative to project root.
+	 * Default: same as outputDir
+	 */
+	fixturesDir?: string;
 }
 
 /**
@@ -164,4 +171,5 @@ export const defaultConfig: Partial<AutomationConfig> = {
 	logger: defaultLoggerConfig,
 	prettierConfig: undefined, // Use default Prettier config
 	generateFixtures: true,
+	fixturesDir: undefined, // Default: same as outputDir
 };

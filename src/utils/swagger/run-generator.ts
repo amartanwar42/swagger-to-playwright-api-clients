@@ -104,7 +104,11 @@ async function processSource(
 	globalOutputDir: string,
 	baseClientPath?: string
 ): Promise<GeneratorResult[]> {
-	const outputDir = sourceConfig.outputDir || globalOutputDir;
+	// When source has custom outputDir, nest inside generatedClients/ to match
+	// the directory structure that fixture generation expects
+	const outputDir = sourceConfig.outputDir
+		? path.join(path.resolve(sourceConfig.outputDir), 'generatedClients')
+		: globalOutputDir;
 	const clientPath = baseClientPath || DEFAULT_BASE_CLIENT_PATH;
 
 	if (sourceConfig.type === 'file') {
@@ -302,9 +306,20 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 
 	// Generate Playwright fixtures file
 	if (allGeneratedFiles.length > 0 && config.generateFixtures !== false) {
-		const fixturesPath = await generateFixturesFile(config.outputDir);
-		if (fixturesPath) {
-			allGeneratedFiles.push(fixturesPath);
+		// Collect all unique output roots (config.outputDir + any per-source overrides)
+		const outputRoots = new Set<string>();
+		outputRoots.add(path.resolve(config.outputDir));
+		for (const source of activeSources) {
+			if (source.outputDir) {
+				outputRoots.add(path.resolve(source.outputDir));
+			}
+		}
+
+		for (const root of outputRoots) {
+			const fixturesPath = await generateFixturesFile(root, config.fixturesDir);
+			if (fixturesPath) {
+				allGeneratedFiles.push(fixturesPath);
+			}
 		}
 	}
 

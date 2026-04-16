@@ -17,5 +17,5 @@
 		"moduleResolution": "nodenext"
 	},
 	"include": ["src/**/*"],
-	"exclude": ["node_modules", "dist", "src/tests", "src/clients/generatedClients"]
+	"exclude": ["node_modules", "dist", "src/tests", "src/clients/generatedClients", "test-consumer-project"]
 }

@@ -15,9 +15,13 @@ interface ClientInfo {
 }
 
 /**
- * Scan the generatedClients directory and collect all *Client.ts files
+ * Scan the generatedClients directory and collect all *Client.ts files.
+ * Import paths are computed relative to fixturesDir.
  */
-async function discoverClients(generatedClientsDir: string): Promise<ClientInfo[]> {
+async function discoverClients(
+	generatedClientsDir: string,
+	fixturesDir: string
+): Promise<ClientInfo[]> {
 	const clients: ClientInfo[] = [];
 
 	if (!fs.existsSync(generatedClientsDir)) {
@@ -30,7 +34,7 @@ async function discoverClients(generatedClientsDir: string): Promise<ClientInfo[
 		if (!entry.isDirectory()) continue;
 
 		const folderPath = path.join(generatedClientsDir, entry.name);
-		await scanFolder(folderPath, [entry.name], clients);
+		await scanFolder(folderPath, generatedClientsDir, fixturesDir, clients);
 	}
 
 	// Sort alphabetically by fixture name for deterministic output
@@ -39,21 +43,31 @@ async function discoverClients(generatedClientsDir: string): Promise<ClientInfo[
 }
 
 /**
- * Recursively scan folders for *Client.ts files
+ * Recursively scan folders for *Client.ts files.
+ * Computes import paths relative to fixturesDir.
  */
 async function scanFolder(
 	dirPath: string,
-	relativeParts: string[],
+	generatedClientsDir: string,
+	fixturesDir: string,
 	clients: ClientInfo[]
 ): Promise<void> {
 	const entries = await fs.promises.readdir(dirPath, { withFileTypes: true });
 
 	for (const entry of entries) {
 		if (entry.isDirectory()) {
-			await scanFolder(path.join(dirPath, entry.name), [...relativeParts, entry.name], clients);
+			await scanFolder(path.join(dirPath, entry.name), generatedClientsDir, fixturesDir, clients);
 		} else if (entry.isFile() && entry.name.endsWith('Client.ts')) {
 			const className = entry.name.replace('.ts', '');
-			const importPath = `./generatedClients/${relativeParts.join('/')}/${className}`;
+			const absoluteClientPath = path.join(dirPath, className);
+			// Compute relative path from fixturesDir to the client file
+			let importPath = path.relative(fixturesDir, absoluteClientPath);
+			// Ensure it starts with ./ for a relative import
+			if (!importPath.startsWith('.')) {
+				importPath = './' + importPath;
+			}
+			// Normalize to forward slashes for TypeScript imports
+			importPath = importPath.replace(/\\/g, '/');
 			const fixtureName = toCamelCase(className);
 
 			clients.push({ className, importPath, fixtureName });
@@ -64,7 +78,7 @@ async function scanFolder(
 /**
  * Generate the fixtures file content
  */
-function generateFixtureContent(clients: ClientInfo[]): string {
+function generateFixtureContent(clients: ClientInfo[], baseClientImport: string): string {
 	if (clients.length === 0) {
 		return '';
 	}
@@ -90,7 +104,7 @@ function generateFixtureContent(clients: ClientInfo[]): string {
  */
 
 import { test as base } from '@playwright/test';
-import { BaseAPIClient } from './BaseAPIClient';
+import { BaseAPIClient } from '${baseClientImport}';
 ${imports}
 
 type APIFixtures = {
@@ -117,23 +131,41 @@ export { expect } from '@playwright/test';
 }
 
 /**
- * Generate and write the fixtures file to the output directory
+ * Generate and write the fixtures file.
+ * @param outputDir - The directory containing generatedClients/ and BaseAPIClient.ts
+ * @param fixturesDir - Optional custom directory to write the fixture file into.
+ *                       Defaults to outputDir when not provided.
  */
-export async function generateFixturesFile(outputDir: string): Promise<string | null> {
+export async function generateFixturesFile(
+	outputDir: string,
+	fixturesDir?: string
+): Promise<string | null> {
 	const generatedClientsDir = path.join(outputDir, 'generatedClients');
+	const resolvedFixturesDir = fixturesDir ? path.resolve(fixturesDir) : path.resolve(outputDir);
 
 	logger.info('Generating Playwright fixtures file...');
 
-	const clients = await discoverClients(generatedClientsDir);
+	const clients = await discoverClients(generatedClientsDir, resolvedFixturesDir);
 
 	if (clients.length === 0) {
 		logger.warn('No generated clients found — skipping fixtures file generation');
 		return null;
 	}
 
-	const content = generateFixtureContent(clients);
-	const fixturesPath = path.join(outputDir, 'fixtures.ts');
+	// Compute BaseAPIClient import path relative to fixturesDir
+	const baseClientAbsolute = path.join(path.resolve(outputDir), 'BaseAPIClient');
+	let baseClientImport = path.relative(resolvedFixturesDir, baseClientAbsolute);
+	if (!baseClientImport.startsWith('.')) {
+		baseClientImport = './' + baseClientImport;
+	}
+	baseClientImport = baseClientImport.replace(/\\/g, '/');
 
+	const content = generateFixtureContent(clients, baseClientImport);
+
+	// Ensure fixturesDir exists
+	await fs.promises.mkdir(resolvedFixturesDir, { recursive: true });
+
+	const fixturesPath = path.join(resolvedFixturesDir, 'fixtures.ts');
 	await fs.promises.writeFile(fixturesPath, content, 'utf-8');
 	logger.info(`Generated fixtures file with ${clients.length} client(s): ${fixturesPath}`);
 

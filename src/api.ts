@@ -93,6 +93,7 @@ export async function loadConfig(configPath: string): Promise<AutomationConfig> 
 				transpileOnly: true,
 				compilerOptions: {
 					module: 'commonjs',
+					moduleResolution: 'node',
 				},
 			});
 		} catch {

@@ -137,6 +137,10 @@ const config: AutomationConfig = {
   // Default: true
   generateFixtures: true,
 
+  // Output directory for the generated fixtures file
+  // Default: same as outputDir
+  // fixturesDir: path.join(__dirname, 'src/tests'),
+
   // Swagger/OpenAPI sources
   sources: [
     // Example: Local file

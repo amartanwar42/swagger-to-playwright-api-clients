@@ -84,7 +84,7 @@ function loadConfigFromFile(): LoggerConfig {
 				try {
 					require('ts-node').register({
 						transpileOnly: true,
-						compilerOptions: { module: 'commonjs' },
+						compilerOptions: { module: 'NodeNext', moduleResolution: 'NodeNext' },
 					});
 				} catch {
 					// ts-node may already be registered
