@@ -128,6 +128,13 @@ export interface AutomationConfig {
 	 * Set to false to disable formatting
 	 */
 	prettierConfig?: string | false;
+
+	/**
+	 * Optional: Whether to generate a Playwright fixtures file that exports
+	 * a custom `test` object with all generated API clients as fixtures.
+	 * Default: true
+	 */
+	generateFixtures?: boolean;
 }
 
 /**
@@ -156,4 +163,5 @@ export const defaultConfig: Partial<AutomationConfig> = {
 	baseClientPath: DEFAULT_BASE_CLIENT_PATH,
 	logger: defaultLoggerConfig,
 	prettierConfig: undefined, // Use default Prettier config
+	generateFixtures: true,
 };

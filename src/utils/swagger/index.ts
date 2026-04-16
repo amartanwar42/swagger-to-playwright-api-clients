@@ -6,6 +6,7 @@ export { SwaggerParser } from './SwaggerParser';
 export { TypeGenerator } from './TypeGenerator';
 export { ClientGenerator } from './ClientGenerator';
 export { FileWriter } from './FileWriter';
+export { generateFixturesFile } from './FixtureGenerator';
 export {
 	SwaggerGenerator,
 	generateFromFile,

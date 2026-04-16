@@ -36,6 +36,9 @@ const config: AutomationConfig = {
 	// Copy BaseAPIClient.ts to output directory
 	copyBaseClient: true,
 
+	// Generate Playwright fixtures file with all API clients
+	generateFixtures: true,
+
 	// Logger configuration for the generator process
 	logger: {
 		// Log level: 'error' | 'warn' | 'info' | 'debug' | 'verbose'

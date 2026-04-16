@@ -12,6 +12,7 @@ import {
 } from '../../config/types';
 import logger, { configureLogger, getLogger, persistLoggerConfig } from '../logger';
 import { formatFiles } from '../formatter';
+import { generateFixturesFile } from './FixtureGenerator';
 
 /**
  * Results for all processed sources
@@ -296,6 +297,14 @@ export async function runGenerator(config: AutomationConfig): Promise<RunResults
 			if (result.success) {
 				allGeneratedFiles.push(...result.filesWritten);
 			}
+		}
+	}
+
+	// Generate Playwright fixtures file
+	if (allGeneratedFiles.length > 0 && config.generateFixtures !== false) {
+		const fixturesPath = await generateFixturesFile(config.outputDir);
+		if (fixturesPath) {
+			allGeneratedFiles.push(fixturesPath);
 		}
 	}
 
