@@ -132,6 +132,11 @@ const config: AutomationConfig = {
   // - false: disable formatting
   prettierConfig: undefined,
 
+  // Whether to generate a Playwright fixtures file (api.fixture.ts)
+  // that exports a custom \`test\` object with all generated API clients as fixtures
+  // Default: true
+  generateFixtures: true,
+
   // Swagger/OpenAPI sources
   sources: [
     // Example: Local file
@@ -148,11 +153,11 @@ const config: AutomationConfig = {
     // },
 
     // Example: Remote URL
-    // {
-    //   type: 'url',
-    //   source: 'https://api.example.com/swagger.json',
-    //   // outputDir: './custom-output', // Optional: custom output directory
-    // },
+    {
+      type: 'url',
+      source: 'https://petstore.swagger.io/v2/swagger.json',
+      outputDir: './src/clients', // Optional: custom output directory
+    },
   ],
 };
 
