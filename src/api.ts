@@ -9,6 +9,7 @@ import { AutomationConfig, defaultConfig, DEFAULT_BASE_CLIENT_PATH } from './con
 import { runGenerator, RunResults } from './utils/swagger/run-generator';
 import { SwaggerGenerator, GeneratorResult } from './utils/swagger/SwaggerGenerator';
 import { copyBaseClient } from './utils/copyBaseClient';
+import { copyHelpers } from './utils/copyHelpers';
 import logger from './utils/logger';
 
 /**
@@ -20,6 +21,8 @@ export async function generate(options: {
 	outputDir: string;
 	baseClientPath?: string;
 	copyBaseClient?: boolean;
+	copyHelperFunctions?: boolean;
+	helperFunctionsDir?: string;
 }): Promise<GeneratorResult> {
 	const {
 		source,
@@ -27,11 +30,18 @@ export async function generate(options: {
 		outputDir,
 		baseClientPath,
 		copyBaseClient: shouldCopyBaseClient = true,
+		copyHelperFunctions: shouldCopyHelpers = true,
+		helperFunctionsDir,
 	} = options;
 
 	// Copy BaseAPIClient if needed
 	if (shouldCopyBaseClient && !baseClientPath) {
 		await copyBaseClient(outputDir);
+	}
+
+	// Copy helper/utility files if needed
+	if (shouldCopyHelpers) {
+		await copyHelpers(outputDir, helperFunctionsDir);
 	}
 
 	const generatedClientsDir = path.join(outputDir, 'generatedClients');
@@ -64,6 +74,11 @@ export async function generateFromConfig(config: AutomationConfig): Promise<RunR
 		await copyBaseClient(mergedConfig.outputDir);
 		// Use the default base client path relative to generated clients
 		mergedConfig.baseClientPath = DEFAULT_BASE_CLIENT_PATH;
+	}
+
+	// Copy helper/utility files if needed
+	if (mergedConfig.copyHelperFunctions !== false) {
+		await copyHelpers(mergedConfig.outputDir, mergedConfig.helperFunctionsDir);
 	}
 
 	return runGenerator(mergedConfig);

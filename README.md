@@ -87,70 +87,51 @@ npx swagger-to-playwright --help
 npx swagger-to-playwright init
 ```
 
-## Programmatic Usage
+## Wrting Tests with Generated Clients
+
+The generator produces typed fixture clients, assertion helpers, test data utilities,
+and status-code constants so tests stay concise and consistent.
 
 ```typescript
-import { generate, generateFromConfig } from 'swagger-to-playwright-api-clients';
+// Import test & expect from the generated fixtures — NOT from @playwright/test
+import { test, expect } from '../src/fixtures/fixtures';
+import { ApiAssertions } from '../src/utils/ApiAssertions';
+import { STATUS } from '../src/helpers/ApiStatusCodes';
+import { random } from '../src/utils/TestDataGenerator';
 
-// Generate from a single source
-const result = await generate({
-	source: './swagger.json',
-	type: 'file',
-	outputDir: './src/clients',
-	serviceName: 'MyService',
+test('get all pets', async ({ petClient }) => {
+	const { body, status } = await petClient.findPetsByStatus('available');
+
+	ApiAssertions.expectStatus(status, STATUS.OK);
+	expect(body?.length).toBeGreaterThan(0);
 });
 
-// Generate from config object
-const results = await generateFromConfig({
-	outputDir: './src/clients',
-	sources: [{ type: 'file', source: './swagger.json', serviceName: 'MyService' }],
-});
-```
+test('create and delete a pet', async ({ petClient, cleanup }) => {
+	const payload = { name: random.fullName(), status: 'available' };
 
-## Using Generated Clients
+	const { body, status } = await petClient.addPet(payload);
 
-```typescript
-import { test, expect } from '@playwright/test';
-import { BaseAPIClient } from './clients/BaseAPIClient';
-import { MyServiceActivityClient } from './clients/generatedClients/MyService/Activity/MyServiceActivityClient';
-
-test('API test example', async () => {
-	const baseClient = new BaseAPIClient('https://api.example.com', {
-		'Content-Type': 'application/json',
-		Authorization: 'Bearer your-token',
+	// Register cleanup BEFORE asserting so teardown runs even on failure
+	cleanup.register(async () => {
+		await petClient.deletePet(body?.id);
 	});
-	await baseClient.init();
 
-	const activityClient = new MyServiceActivityClient(baseClient);
-
-	const { body, status } = await activityClient.getActivities();
-
-	expect(status).toBe(200);
-	expect(body.activities).toBeDefined();
-
-	await baseClient.dispose();
+	ApiAssertions.expectStatus(status, STATUS.OK);
+	expect(body?.name).toBe(payload.name);
 });
 ```
 
 ### With Request/Response Logging
 
 ```typescript
-import { getLogger, configureLogger } from 'swagger-to-playwright-api-clients';
-import { BaseAPIClient } from './clients/BaseAPIClient';
+import { configureLogger, getLogger } from 'swagger-to-playwright-api-clients';
 
-// Configure logger (optional - uses defaults if not called)
+// Configure logger (optional — reads generator-config.ts by default)
 configureLogger({
 	level: 'debug',
 	console: true,
 	file: false,
 });
-
-// Pass logger to BaseAPIClient for request/response logging
-const baseClient = new BaseAPIClient(
-	'https://api.example.com',
-	{ 'Content-Type': 'application/json' },
-	getLogger() // Winston logger instance
-);
 ```
 
 ## Configuration Options
@@ -184,19 +165,30 @@ const config: AutomationConfig = {
 ## Generated Structure
 
 ```
-src/clients/
-├── BaseAPIClient.ts           # Base client (auto-copied)
-└── generatedClients/
-    └── MyService/
-        ├── Activity/
-        │   ├── types.ts
-        │   └── MyServiceActivityClient.ts
-        ├── Users/
-        │   ├── types.ts
-        │   └── MyServiceUsersClient.ts
-        └── Root/
-            ├── types.ts
-            └── MyServiceRootClient.ts
+src/
+├── clients/
+│   ├── BaseAPIClient.ts              # Base client (auto-copied)
+│   └── generatedClients/
+│       └── MyService/
+│           ├── Activity/
+│           │   ├── types.ts
+│           │   └── MyServiceActivityClient.ts
+│           ├── Users/
+│           │   ├── types.ts
+│           │   └── MyServiceUsersClient.ts
+│           └── Root/
+│               ├── types.ts
+│               └── MyServiceRootClient.ts
+├── fixtures/
+│   └── fixtures.ts                   # Playwright fixtures with typed clients
+├── helpers/
+│   ├── ApiStatusCodes.ts             # Named HTTP status constants
+│   └── SetupHelpers.ts              # Precondition / teardown helpers
+└── utils/
+    ├── ApiAssertions.ts              # Typed assertion helpers
+    ├── SecurityPayloads.ts           # Security test payloads
+    ├── TestDataGenerator.ts          # Random test data builders
+    └── TypeValidator.ts              # Runtime type validation
 ```
 
 ## Peer Dependencies

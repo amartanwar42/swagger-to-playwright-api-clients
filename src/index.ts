@@ -40,8 +40,6 @@ export {
 	getLogger,
 	configureLogger,
 	getLoggerConfig,
-	persistLoggerConfig,
-	LOGGER_CONFIG_FILE,
 	logRequest,
 	logError,
 } from './utils/logger';
@@ -68,6 +66,7 @@ export {
 
 // Copy utilities for generated output
 export { copyBaseClient } from './utils/copyBaseClient';
+export { copyHelpers } from './utils/copyHelpers';
 
 // Programmatic API
 export { generate, generateFromConfig, loadConfig } from './api';

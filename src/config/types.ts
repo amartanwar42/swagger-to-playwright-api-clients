@@ -108,6 +108,21 @@ export interface AutomationConfig {
 	copyBaseClient?: boolean;
 
 	/**
+	 * Optional: Whether to copy helper/utility files to output directory
+	 * Copies: TestDataGenerator, ApiAssertions, TypeValidator, CleanupManager,
+	 * SecurityPayloads, ResponseLogger (utils/) and ApiStatusCodes, SetupHelpers (helpers/)
+	 * Default: true
+	 */
+	copyHelperFunctions?: boolean;
+
+	/**
+	 * Optional: Base directory for helper/utility files.
+	 * By default, files are written to the parent of outputDir (e.g. src/)
+	 * so that when outputDir is src/clients/, helpers land at src/utils/ and src/helpers/.
+	 */
+	helperFunctionsDir?: string;
+
+	/**
 	 * Optional: Whether to clean output directory before generation
 	 */
 	cleanOutput?: boolean;
@@ -167,6 +182,8 @@ export const defaultConfig: Partial<AutomationConfig> = {
 	cleanOutput: true,
 	parallel: false,
 	copyBaseClient: true,
+	copyHelperFunctions: true,
+	helperFunctionsDir: undefined, // Default: parent of outputDir
 	baseClientPath: DEFAULT_BASE_CLIENT_PATH,
 	logger: defaultLoggerConfig,
 	prettierConfig: undefined, // Use default Prettier config

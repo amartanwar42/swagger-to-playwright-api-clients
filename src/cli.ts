@@ -106,6 +106,9 @@ const config: AutomationConfig = {
   // Whether to copy BaseAPIClient.ts to output directory
   copyBaseClient: true,
 
+  // Whether to copy helper/utility files (TestDataGenerator, ApiAssertions, TypeValidator, ApiStatusCodes)
+  copyHelperFunctions: true,
+
   // BaseAPIClient import path (relative to generated client files)
   // Generated clients are at: outputDir/generatedClients/FolderName/
   // Default: '../../BaseAPIClient' - library will copy BaseAPIClient.ts to outputDir
@@ -139,7 +142,7 @@ const config: AutomationConfig = {
 
   // Output directory for the generated fixtures file
   // Default: same as outputDir
-  // fixturesDir: path.join(__dirname, 'src/tests'),
+  fixturesDir: path.join(__dirname, 'src/fixtures'),
 
   // Swagger/OpenAPI sources
   sources: [
